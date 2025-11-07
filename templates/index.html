@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Algorithm Battlefield Arena - Home{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container h-100">
+        <div class="row h-100 align-items-center">
+            <div class="col-lg-8 mx-auto text-center">
+                <div class="hero-content">
+                    <h1 class="display-2 fw-bold text-danger mb-4" style="font-family: 'Orbitron', sans-serif;">
+                        <i class="fas fa-duotone fa-swords"></i> ALGORITHM BATTLEFIELD
+                    </h1>
+                    <h2 class="fs-4 text-light mb-4" style="font-family: 'Poppins', sans-serif;">
+                        Two Algorithms Enter. One Emerges Victorious.
+                    </h2>
+                    <p class="lead text-muted mb-5">
+                        Witness the ultimate battle of computational prowess. Choose algorithms from different categories and let them compete for supremacy based on execution time and memory efficiency.
+                    </p>
+                    <a href="/select_category" class="btn btn-danger btn-lg px-5 py-3 fw-bold" style="font-family: 'Montserrat', sans-serif;">
+                        <i class="fas fa-play"></i> START BATTLE
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<section class="py-5 bg-dark">
+    <div class="container">
+        <h2 class="text-center text-light mb-5 fw-bold">Battle Features</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card text-center p-4">
+                    <i class="fas fa-tachometer-alt text-danger fs-1 mb-3"></i>
+                    <h5 class="text-light fw-bold">Real-Time Performance</h5>
+                    <p class="text-muted">Measure execution time and memory usage with precision</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card text-center p-4">
+                    <i class="fas fa-layer-group text-danger fs-1 mb-3"></i>
+                    <h5 class="text-light fw-bold">8 Algorithm Categories</h5>
+                    <p class="text-muted">34+ algorithms across sorting, searching, graphs, and more</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card text-center p-4">
+                    <i class="fas fa-chart-bar text-danger fs-1 mb-3"></i>
+                    <h5 class="text-light fw-bold">Detailed Analytics</h5>
+                    <p class="text-muted">Compare results with visual comparison charts</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Algorithm Categories Preview -->
+<section class="py-5 bg-darker">
+    <div class="container">
+        <h2 class="text-center text-light mb-5 fw-bold">Choose Your Arena</h2>
+        <div class="row g-3">
+            <div class="col-md-3 col-sm-6">
+                <div class="category-preview">
+                    <i class="fas fa-sort text-success"></i>
+                    <p>Sorting</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="category-preview">
+                    <i class="fas fa-search text-info"></i>
+                    <p>Searching</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="category-preview">
+                    <i class="fas fa-diagram-project text-warning"></i>
+                    <p>Graphs</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="category-preview">
+                    <i class="fas fa-cube text-primary"></i>
+                    <p>More...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #16213e 100%);
+    height: 100vh;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 50%, rgba(255, 0, 100, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(0, 255, 150, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        animation: slideUp 1s ease-out;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .feature-card {
+        background: rgba(255, 0, 100, 0.05);
+        border: 1px solid rgba(255, 0, 100, 0.2);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        background: rgba(255, 0, 100, 0.1);
+        border-color: rgba(255, 0, 100, 0.5);
+        transform: translateY(-5px);
+    }
+    
+    .category-preview {
+        background: linear-gradient(135deg, rgba(255, 0, 100, 0.1), rgba(0, 255, 150, 0.1));
+        border: 2px solid rgba(255, 0, 100, 0.3);
+        border-radius: 10px;
+        padding: 30px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .category-preview:hover {
+        border-color: rgba(255, 0, 100, 1);
+        background: rgba(255, 0, 100, 0.2);
+        transform: scale(1.05);
+    }
+    
+    .category-preview i {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 10px;
+    }
+    
+    .category-preview p {
+        color: #fff;
+        font-weight: bold;
+        margin: 0;
+    }
+    
+    .bg-darker {
+        background-color: #050810;
+    }
+</style>
+{% endblock %}

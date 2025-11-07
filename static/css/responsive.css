@@ -1,0 +1,287 @@
+/* Responsive Design - Mobile First Approach */
+
+/* Extra Small Devices (phones) */
+@media (max-width: 576px) {
+    body {
+        font-size: 14px;
+    }
+    
+    h1 {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    h2 {
+        font-size: 1.3rem;
+    }
+    
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    .hero-section {
+        height: auto;
+        padding: 40px 0;
+    }
+    
+    .btn-lg {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+    
+    .row {
+        margin-right: -10px;
+        margin-left: -10px;
+    }
+    
+    .col-sm-6, .col-md-4, .col-lg-6 {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    /* Forms */
+    .form-control, textarea {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 0.75rem;
+    }
+    
+    /* Cards */
+    .player-section, .battle-card, .result-card, .input-section {
+        padding: 20px;
+        border-radius: 10px;
+    }
+    
+    /* Grid adjustments */
+    .categories-grid, .algorithms-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .results-grid {
+        gap: 10px;
+    }
+    
+    /* Navbar adjustments */
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    .navbar-toggler {
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Result items */
+    .result-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .stat-item {
+        justify-content: space-between;
+    }
+}
+
+/* Small Devices (landscape phones, small tablets) */
+@media (min-width: 576px) and (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+    
+    h2 {
+        font-size: 1.4rem;
+    }
+    
+    .hero-section {
+        height: 80vh;
+    }
+    
+    .categories-grid, .algorithms-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .row > [class^="col-"] {
+        margin-bottom: 20px;
+    }
+    
+    .player-section {
+        min-height: 500px;
+    }
+    
+    .comparison-bars {
+        height: 40px;
+    }
+}
+
+/* Medium Devices (tablets) */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .hero-section {
+        height: 90vh;
+    }
+    
+    .categories-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .player-section {
+        min-height: 550px;
+    }
+    
+    .stats-comparison {
+        margin: 0 auto;
+    }
+}
+
+/* Large Devices (desktops) */
+@media (min-width: 1024px) {
+    .hero-section {
+        height: 100vh;
+    }
+    
+    .categories-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .player-section {
+        min-height: 600px;
+    }
+    
+    .display-2 {
+        font-size: 4rem;
+    }
+}
+
+/* Extra Large Devices (large desktops) */
+@media (min-width: 1920px) {
+    .container {
+        max-width: 1400px;
+    }
+    
+    .display-2 {
+        font-size: 5rem;
+    }
+    
+    .categories-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    h1 {
+        font-size: 3.5rem;
+    }
+}
+
+/* Landscape Orientation */
+@media (orientation: landscape) and (max-height: 500px) {
+    .hero-section {
+        height: 80vh;
+        padding: 20px 0;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Portrait Orientation */
+@media (orientation: portrait) and (max-width: 600px) {
+    .navbar {
+        padding: 0.5rem 0;
+    }
+    
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    main {
+        margin-top: 0;
+    }
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+    
+    .navbar, footer, .btn {
+        display: none;
+    }
+    
+    .hero-section {
+        height: auto;
+    }
+    
+    .result-card {
+        page-break-inside: avoid;
+        border: 1px solid #ccc;
+    }
+}
+
+/* High DPI Screens (Retina displays) */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    body {
+        font-size: 15px;
+    }
+    
+    /* Use higher quality assets if available */
+    img {
+        image-rendering: -webkit-optimize-contrast;
+    }
+}
+
+/* Touch Device Specific */
+@media (hover: none) and (pointer: coarse) {
+    /* Increase touch targets */
+    .btn, .btn-lg, .algo-card, .category-card {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Remove hover effects that don't work on touch */
+    .btn:hover::before {
+        left: -100%;
+    }
+    
+    /* Reduce animations for performance */
+    * {
+        animation-duration: 0.2s;
+    }
+}
+
+/* Reduced Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0s !important;
+        transition-duration: 0s !important;
+    }
+}
+
+/* Dark Mode - Already applied as default */
+@media (prefers-color-scheme: dark) {
+    /* Current styles are for dark mode, no changes needed */
+}
+
+/* Light Mode Support (if needed) */
+@media (prefers-color-scheme: light) {
+    /* Can add light mode styles here if required */
+}
+
+/* Container Queries (for future use) */
+@supports (container-type: inline-size) {
+    @container (max-width: 400px) {
+        .player-section {
+            padding: 15px;
+        }
+        
+        h2 {
+            font-size: 1.1rem;
+        }
+    }
+}
