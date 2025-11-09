@@ -145,9 +145,19 @@ def select_algorithm():
         if player == 1:
             session['algorithm_p1'] = algorithm
             session.modified = True
+            return jsonify({'success': True, 'message': 'Algorithm selected for Player 1'})
+
         elif player == 2:
+            algo_p1 = session.get('algorithm_p1')
+            if algorithm == algo_p1:
+                return jsonify({
+                    'success': False,
+                    'message': f"Player 2 cannot select the same algorithm as Player 1 ({algo_p1}). Please choose a different one."
+                })
             session['algorithm_p2'] = algorithm
             session.modified = True
+            return jsonify({'success': True, 'message': 'Algorithm selected for Player 2'})
+
         
         return jsonify({'success': True})
     
@@ -361,34 +371,59 @@ def input_page():
                 return jsonify({'success': False, 'error': str(e)})
         
         elif action == 'manual':
-            input_text = data.get('input_text')
+            input_text = data.get('input_text', '').strip()
             search_key = data.get('search_key')
             pattern = data.get('pattern')  # For string matching with separate pattern field
-            
+            num_elements = data.get('num_elements')  # ✅ New field from manual tab
+
             try:
-                # For string matching with separate pattern field, pass pattern to parser
-                if category_normalized == 'string_matching' and '\n' in input_text:
-                    # Pattern was passed as separate field in format "text\npattern"
+                # Normalize category
+                category_normalized = category_normalized.replace('_', ' ').lower()
+
+                # ✅ For string matching (text + pattern)
+                if category_normalized == 'string matching' and '\n' in input_text:
                     lines = input_text.split('\n', 1)
                     text = lines[0].strip()
                     pattern_from_input = lines[1].strip() if len(lines) > 1 else ''
                     parsed_input = parse_manual_input(text, category_normalized, pattern_from_input)
+
+                # ✅ For searching, use num_elements and search_key if provided
+                elif category_normalized == 'searching':
+                    parsed_input = parse_manual_input(input_text, category_normalized)
+                    if search_key is not None:
+                        parsed_input = (parsed_input, int(search_key))
+                    if num_elements:
+                        print(f"[DEBUG] Player {player} specified {num_elements} elements for searching")
+
+                # ✅ For sorting (include num_elements if needed)
+                elif category_normalized == 'sorting':
+                    parsed_input = parse_manual_input(input_text, category_normalized)
+                    if num_elements:
+                        print(f"[DEBUG] Player {player} specified {num_elements} elements for sorting")
+
+                # ✅ All other categories
                 else:
                     parsed_input = parse_manual_input(input_text, category_normalized, pattern)
-                
-                # For searching, create tuple with search key
-                if category_normalized == 'searching' and search_key is not None:
-                    parsed_input = (parsed_input, int(search_key))
-                
+
+                # ✅ Store in session
                 if player == 1:
                     session['input_p1'] = parsed_input
                 else:
                     session['input_p2'] = parsed_input
-                
+
                 session.modified = True
-                return jsonify({'success': True, 'input': str(parsed_input)})
+
+                return jsonify({
+                    'success': True,
+                    'input': str(parsed_input)
+                })
+
             except Exception as e:
-                return jsonify({'success': False, 'error': str(e)})
+                return jsonify({
+                    'success': False,
+                    'error': str(e)
+                })
+
     
     p1_category = session.get('category_p1', 'sorting')
     p2_category = session.get('category_p2', 'sorting')

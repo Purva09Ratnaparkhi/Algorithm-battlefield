@@ -1,311 +1,201 @@
 {% extends "base.html" %}
-
 {% block title %}Enter Input - Algorithm Battlefield{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row mb-5">
-        <div class="col-lg-10 mx-auto">
-            <h1 class="text-center text-danger fw-bold mb-4" style="font-family: 'Orbitron', sans-serif;">
+        <div class="col-lg-10 mx-auto text-center">
+            <h1 class="text-danger fw-bold mb-4" style="font-family: 'Orbitron', sans-serif;">
                 <i class="fas fa-database"></i> PREPARE YOUR INPUTS
             </h1>
-            <p class="text-center text-light">⚠️ Each player provides their own input for the battle!</p>
-            <p class="text-center text-muted small">Player 1 and Player 2 can use different inputs. Correctness and performance will both be evaluated.</p>
-            <!-- DEBUG INFO -->
-            <p class="text-center text-warning" style="font-size: 0.8rem;">DEBUG: P1 Category = <code id="debug-p1-cat"></code>, P2 Category = <code id="debug-p2-cat"></code></p>
+            <p class="text-light">⚔️ Each player provides their own input for the battle!</p>
+            <p class="text-muted small">Performance and correctness are compared between both players.</p>
         </div>
     </div>
 
-    <!-- Player 1 Input Panel -->
-    <div class="row mb-4">
+    <div class="row justify-content-between">
+        <!-- Player 1 Section -->
         <div class="col-lg-5">
             <div class="input-section player-1-section">
                 <h2 class="text-center text-light fw-bold mb-4">
                     <i class="fas fa-user"></i> Player 1 Input
                 </h2>
 
+                <!-- Tabs -->
                 <div class="input-tabs">
-                    <button class="tab-btn p1-tab-btn active" data-player="1" data-tab="random">
-                        <i class="fas fa-random"></i> Random
-                    </button>
-                    <button class="tab-btn p1-tab-btn" data-player="1" data-tab="manual">
-                        <i class="fas fa-keyboard"></i> Manual
-                    </button>
+                    <button class="tab-btn p1-tab-btn active" data-player="1" data-tab="random">Random</button>
+                    <button class="tab-btn p1-tab-btn" data-player="1" data-tab="manual">Manual</button>
                 </div>
 
-                <!-- Player 1 Random Input Tab -->
+                <!-- RANDOM TAB -->
                 <div class="tab-content p1-tab active" id="p1-random-tab">
-                    <div class="mb-4">
-                        <label class="form-label text-light fw-bold" id="p1-size-label">Number of Elements</label>
-                        <input type="number" id="p1-size" class="form-control" value="5" min="2" max="500">
-                        <small class="text-muted" id="p1-size-hint">Number of elements</small>
+                    <div class="mb-4" id="p1-elements-random-div" style="display:none;">
+                        <label class="form-label text-light fw-bold">Enter Number of Elements</label>
+                        <input type="number" id="p1-elements-random" class="form-control" placeholder="e.g. 5" min="1">
                     </div>
-                    <!-- Search key field - only for searching category (manual tab) -->
+
+                    <div class="mb-4" id="p1-string-length-random-div" style="display:none;">
+                        <label class="form-label text-light fw-bold">Enter Text Length</label>
+                        <input type="number" id="p1-string-length-random" class="form-control" placeholder="e.g. 50" min="5">
+                    </div>
+
+                     <!-- Search key field - only for searching category (manual tab) -->
                     <div class="mb-4" id="p1-search-key-random-div" style="display:none;">
                         <label class="form-label text-light fw-bold">Search Key (Enter manually)</label>
                         <input type="number" id="p1-search-key-random" class="form-control" placeholder="Enter number to search">
                         <small class="text-muted">You can type your search key here</small>
                     </div>
 
-
-                    <!-- Pattern field for string matching - visible only when string matching is selected -->
                     <div class="mb-4" id="p1-pattern-random-div" style="display:none;">
                         <label class="form-label text-light fw-bold">Pattern to Search</label>
                         <input type="text" id="p1-pattern-random" class="form-control" placeholder="Enter pattern to search for">
-                        <small class="text-muted">Enter the pattern you want to find in the generated text</small>
                     </div>
+
                     <button class="btn btn-success w-100 btn-lg" onclick="generateRandomWithSearch(1)">
                         <i class="fas fa-sparkles"></i> Generate Random
                     </button>
-                    <!-- Submit button for string matching - visible after text is generated -->
                     <button class="btn btn-primary w-100 btn-lg mt-2" id="p1-pattern-submit-btn" style="display:none;" onclick="submitPatternForStringMatching(1)">
                         <i class="fas fa-check"></i> Submit Pattern
                     </button>
+
                     <div id="p1-random-preview" class="mt-3"></div>
                 </div>
 
-                <!-- Player 1 Manual Input Tab -->
+                <!-- MANUAL TAB -->
                 <div class="tab-content p1-tab" id="p1-manual-tab">
+                    <div class="mb-4" id="p1-elements-manual-div" style="display:none;">
+                        <label class="form-label text-light fw-bold">Enter Number of Elements</label>
+                        <input type="number" id="p1-elements-manual" class="form-control" placeholder="e.g. 5" min="1">
+                    </div>
 
-                    <!-- Generic manual input -->
+                    <div class="mb-4" id="p1-string-length-manual-div" style="display:none;">
+                        <label class="form-label text-light fw-bold">Enter Text Length</label>
+                        <input type="number" id="p1-string-length-manual" class="form-control" placeholder="e.g. 50" min="5">
+                    </div>
+
                     <div class="mb-4">
                         <label class="form-label text-light fw-bold">Input Data</label>
                         <textarea id="p1-manual" class="form-control" rows="6" placeholder="Enter input"></textarea>
-                        <small class="text-muted" id="p1-manual-hint">Enter in the specified format</small>
+                        <small class="text-muted" id="p1-manual-hint">Enter input according to category</small>
                     </div>
 
-                    <!-- Search key field - only for searching category -->
+                    <!-- Search key field -->
                     <div class="mb-4" id="p1-search-key-div" style="display:none;">
-                        <label class="form-label text-light fw-bold">Search Key (Target Value)</label>
-                        <input type="number" id="p1-search-key" class="form-control" placeholder="Enter value to search for">
-                        <small class="text-muted">The value to search for in the array</small>
+                        <label class="form-label text-light fw-bold">Search Key</label>
+                        <input type="number" id="p1-search-key" class="form-control" placeholder="Enter target value">
                     </div>
 
-
-
-                    <!-- Text and Pattern fields for string matching -->
+                    <!-- Text and Pattern for string matching -->
                     <div class="mb-4" id="p1-text-manual-div" style="display:none;">
                         <label class="form-label text-light fw-bold">Text</label>
                         <textarea id="p1-text-manual" class="form-control" rows="4" placeholder="Enter text to search in"></textarea>
-                        <small class="text-muted">The text to search within</small>
                     </div>
+
                     <div class="mb-4" id="p1-pattern-manual-div" style="display:none;">
                         <label class="form-label text-light fw-bold">Pattern</label>
-                        <input type="text" id="p1-pattern-manual" class="form-control" placeholder="Enter pattern to search for">
-                        <small class="text-muted">The pattern to search for</small>
-                    </div>
-
-                    <!-- 🔹 NEW: Graph / Shortest Path manual input fields -->
-                    <div id="p1-graph-fields" style="display:none;">
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Nodes</label>
-                            <input type="text" id="p1-nodes-manual" class="form-control" placeholder="A,B,C,D">
-                            <small class="text-muted">Comma-separated node names (e.g. A,B,C,D)</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Edges</label>
-                            <textarea id="p1-edges-manual" class="form-control" rows="3"
-                                placeholder="(A,B,10);(B,C,5)"></textarea>
-                            <small class="text-muted">Use semicolons between edges.  
-                                Weighted example → (A,B,10);(C,D,34)</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Starting Node</label>
-                            <input type="text" id="p1-start-manual" class="form-control" placeholder="A">
-                            <small class="text-muted">Enter the starting node (e.g. A)</small>
-                        </div>
-                    </div>
-                    <!-- 🔹 END of new block -->
-                    <!-- 🔹 NEW: MST manual input fields -->
-                    <div id="p1-mst-fields" style="display:none;">
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Nodes</label>
-                            <input type="text" id="p1-mst-nodes-manual" class="form-control" placeholder="A,B,C,D">
-                            <small class="text-muted">Comma-separated node names (e.g. A,B,C,D)</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Weighted Edges</label>
-                            <textarea id="p1-mst-edges-manual" class="form-control" rows="3"
-                                placeholder="(A,B,10);(B,C,5);(C,D,3)"></textarea>
-                            <small class="text-muted">Weighted edges: (A,B,10);(B,C,5);(C,D,3)</small>
-                        </div>
-                    </div>
-
-                    <!-- 🔹 NEW: Knapsack manual input fields -->
-                    <div id="p1-knapsack-fields" style="display:none;">
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Number of Items</label>
-                            <input type="number" id="p1-items-manual" class="form-control" placeholder="e.g. 3">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Weights</label>
-                            <input type="text" id="p1-weights-manual" class="form-control" placeholder="e.g. 10,20,30">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Values</label>
-                            <input type="text" id="p1-values-manual" class="form-control" placeholder="e.g. 60,100,120">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Capacity</label>
-                            <input type="number" id="p1-capacity-manual" class="form-control" placeholder="e.g. 50">
-                        </div>
+                        <input type="text" id="p1-pattern-manual" class="form-control" placeholder="Enter pattern">
                     </div>
 
                     <button class="btn btn-primary w-100 btn-lg" onclick="submitManual(1)">
                         <i class="fas fa-check"></i> Submit
                     </button>
+
+                    <div id="p1-status" class="mt-3"></div>
                 </div>
-
-
-                <div id="p1-status" class="mt-3"></div>
             </div>
         </div>
 
-        <!-- Player 2 Input Panel -->
+        <!-- Player 2 Section -->
         <div class="col-lg-5">
             <div class="input-section player-2-section">
                 <h2 class="text-center text-light fw-bold mb-4">
                     <i class="fas fa-user"></i> Player 2 Input
                 </h2>
 
+                <!-- Tabs -->
                 <div class="input-tabs">
-                    <button class="tab-btn p2-tab-btn active" data-player="2" data-tab="random">
-                        <i class="fas fa-random"></i> Random
-                    </button>
-                    <button class="tab-btn p2-tab-btn" data-player="2" data-tab="manual">
-                        <i class="fas fa-keyboard"></i> Manual
-                    </button>
+                    <button class="tab-btn p2-tab-btn active" data-player="2" data-tab="random">Random</button>
+                    <button class="tab-btn p2-tab-btn" data-player="2" data-tab="manual">Manual</button>
                 </div>
 
-                <!-- Player 2 Random Input Tab -->
+                <!-- RANDOM TAB -->
                 <div class="tab-content p2-tab active" id="p2-random-tab">
-                    <div class="mb-4">
-                        <label class="form-label text-light fw-bold" id="p2-size-label">Number of Elements</label>
-                        <input type="number" id="p2-size" class="form-control" value="5" min="2" max="500">
-                        <small class="text-muted" id="p2-size-hint">Number of elements</small>
+                    <div class="mb-4" id="p2-elements-random-div" style="display:none;">
+                        <label class="form-label text-light fw-bold">Enter Number of Elements</label>
+                        <input type="number" id="p2-elements-random" class="form-control" placeholder="e.g. 5" min="1">
                     </div>
+
+                    <div class="mb-4" id="p2-string-length-random-div" style="display:none;">
+                        <label class="form-label text-light fw-bold">Enter Text Length</label>
+                        <input type="number" id="p2-string-length-random" class="form-control" placeholder="e.g. 50" min="5">
+                    </div>
+
                     <!-- Search key field for searching - visible only when searching is selected -->
                     <div class="mb-4" id="p2-search-key-random-div" style="display:none%;">
                         <label class="form-label text-light fw-bold">Search Key (Enter manually)</label>
                         <input type="number" id="p2-search-key-random" class="form-control" placeholder="Enter number to search">
                         <small class="text-muted">You can type your search key here</small>
-                        </div>
+                    </div>
 
-                    <!-- Pattern field for string matching - visible only when string matching is selected -->
                     <div class="mb-4" id="p2-pattern-random-div" style="display:none;">
                         <label class="form-label text-light fw-bold">Pattern to Search</label>
                         <input type="text" id="p2-pattern-random" class="form-control" placeholder="Enter pattern to search for">
-                        <small class="text-muted">Enter the pattern you want to find in the generated text</small>
                     </div>
+
                     <button class="btn btn-success w-100 btn-lg" onclick="generateRandomWithSearch(2)">
                         <i class="fas fa-sparkles"></i> Generate Random
                     </button>
-                    <!-- Submit button for string matching - visible after text is generated -->
                     <button class="btn btn-primary w-100 btn-lg mt-2" id="p2-pattern-submit-btn" style="display:none;" onclick="submitPatternForStringMatching(2)">
                         <i class="fas fa-check"></i> Submit Pattern
                     </button>
+
                     <div id="p2-random-preview" class="mt-3"></div>
                 </div>
 
-                <!-- Player 2 Manual Input Tab -->
+                <!-- MANUAL TAB -->
                 <div class="tab-content p2-tab" id="p2-manual-tab">
+                    <div class="mb-4" id="p2-elements-manual-div" style="display:none;">
+                        <label class="form-label text-light fw-bold">Enter Number of Elements</label>
+                        <input type="number" id="p2-elements-manual" class="form-control" placeholder="e.g. 5" min="1">
+                    </div>
 
-                    <!-- Generic manual input -->
+                    <div class="mb-4" id="p2-string-length-manual-div" style="display:none;">
+                        <label class="form-label text-light fw-bold">Enter Text Length</label>
+                        <input type="number" id="p2-string-length-manual" class="form-control" placeholder="e.g. 50" min="5">
+                    </div>
+
                     <div class="mb-4">
                         <label class="form-label text-light fw-bold">Input Data</label>
                         <textarea id="p2-manual" class="form-control" rows="6" placeholder="Enter input"></textarea>
-                        <small class="text-muted" id="p2-manual-hint">Enter in the specified format</small>
                     </div>
 
-                    <!-- Search key field - only for searching category -->
                     <div class="mb-4" id="p2-search-key-div" style="display:none;">
-                        <label class="form-label text-light fw-bold">Search Key (Target Value)</label>
-                        <input type="number" id="p2-search-key" class="form-control" placeholder="Enter value to search for">
-                        <small class="text-muted">The value to search for in the array</small>
+                        <label class="form-label text-light fw-bold">Search Key</label>
+                        <input type="number" id="p2-search-key" class="form-control" placeholder="Enter target value">
                     </div>
 
-
-                    <!-- Text and Pattern fields for string matching -->
                     <div class="mb-4" id="p2-text-manual-div" style="display:none;">
                         <label class="form-label text-light fw-bold">Text</label>
                         <textarea id="p2-text-manual" class="form-control" rows="4" placeholder="Enter text to search in"></textarea>
-                        <small class="text-muted">The text to search within</small>
                     </div>
 
                     <div class="mb-4" id="p2-pattern-manual-div" style="display:none;">
                         <label class="form-label text-light fw-bold">Pattern</label>
-                        <input type="text" id="p2-pattern-manual" class="form-control" placeholder="Enter pattern to search for">
-                        <small class="text-muted">The pattern to search for</small>
-                    </div>
-
-                    <!-- 🔹 NEW: Graph / Shortest Path manual input fields -->
-                    <div id="p2-graph-fields" style="display:none;">
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Nodes</label>
-                            <input type="text" id="p2-nodes-manual" class="form-control" placeholder="A,B,C,D">
-                            <small class="text-muted">Comma-separated node names (e.g. A,B,C,D)</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Edges</label>
-                            <textarea id="p2-edges-manual" class="form-control" rows="3"
-                                placeholder="(A,B,10);(B,C,5)"></textarea>
-                            <small class="text-muted">Use semicolons between edges.  
-                                Weighted example → (A,B,10);(C,D,34)</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Starting Node</label>
-                            <input type="text" id="p2-start-manual" class="form-control" placeholder="A">
-                            <small class="text-muted">Enter the starting node (e.g. A)</small>
-                        </div>
-                    </div>
-                    <!-- 🔹 END of new block -->
-                     <!-- 🔹 MST manual input fields -->
-                    <div id="p2-mst-fields" style="display:none;">
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Nodes</label>
-                            <input type="text" id="p2-mst-nodes-manual" class="form-control" placeholder="A,B,C,D">
-                            <small class="text-muted">Comma-separated node names (e.g. A,B,C,D)</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Weighted Edges</label>
-                            <textarea id="p2-mst-edges-manual" class="form-control" rows="3"
-                                placeholder="(A,B,10);(B,C,5);(C,D,3)"></textarea>
-                            <small class="text-muted">Weighted edges: (A,B,10);(B,C,5);(C,D,3)</small>
-                        </div>
-                    </div>
-
-                    <!-- 🔹 Knapsack manual input fields -->
-                    <div id="p2-knapsack-fields" style="display:none;">
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Number of Items</label>
-                            <input type="number" id="p2-items-manual" class="form-control" placeholder="e.g. 3">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Weights</label>
-                            <input type="text" id="p2-weights-manual" class="form-control" placeholder="e.g. 10,20,30">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Values</label>
-                            <input type="text" id="p2-values-manual" class="form-control" placeholder="e.g. 60,100,120">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-light fw-bold">Capacity</label>
-                            <input type="number" id="p2-capacity-manual" class="form-control" placeholder="e.g. 50">
-                        </div>
+                        <input type="text" id="p2-pattern-manual" class="form-control" placeholder="Enter pattern">
                     </div>
 
                     <button class="btn btn-primary w-100 btn-lg" onclick="submitManual(2)">
                         <i class="fas fa-check"></i> Submit
                     </button>
+
+                    <div id="p2-status" class="mt-3"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-
-                                <div id="p2-status" class="mt-3"></div>
-                            </div>
-                        </div>
-                    </div>
-
-    <!-- Navigation -->
+ <!-- Navigation -->
     <div class="row mt-5">
         <div class="col-lg-10 mx-auto">
             <div class="d-flex justify-content-between">
@@ -317,482 +207,166 @@
                 </button>
             </div>
         </div>
-    </div>{% endblock %}
+    </div>
+{% endblock %}
 
 {% block extra_js %}
 <script>
+    const p1Category = "{{ p1_category }}".trim().toLowerCase();
+    const p2Category = "{{ p2_category }}".trim().toLowerCase();
     let p1Input = null;
     let p2Input = null;
-    const p1Category = "{{ p1_category }}".trim();
-    const p2Category = "{{ p2_category }}".trim();
 
-    console.log('DEBUG: p1Category =', p1Category);
-    console.log('DEBUG: p2Category =', p2Category);
-
-    // Input format hints and instructions
-    const inputHints = {
-        'sorting': {
-            sizeLabel: 'Number of Elements',
-            sizeHint: 'Number of elements to sort (2-500)',
-            manualHint: 'Comma-separated numbers: 5, 3, 8, 1, 9',
-            manualPlaceholder: '5, 3, 8, 1, 9'
-        },
-        'searching': {
-            sizeLabel: 'Number of Elements',
-            sizeHint: 'Number of elements in array (2-100)',
-            manualHint: 'Comma-separated numbers: 5, 3, 8, 1, 9',
-            manualPlaceholder: '5, 3, 8, 1, 9'
-        },
-        'string matching': {
-            sizeLabel: 'Random Text Length',
-            sizeHint: 'Length of random text to generate (5-500)',
-            manualHint: 'Enter text in first field and pattern in second field',
-            manualPlaceholder: 'ABABDABAACAAB|AABAAC'
-        },
-        'shortest path': {
-            sizeLabel: 'Number of Nodes',
-            sizeHint: 'Number of nodes in graph (2-10)',
-            manualHint: 'Format: nodes\\nedges\\nstart_node (edges like: (A,B,4);(B,C,2))',
-            manualPlaceholder: '4\n(A,B,4);(B,C,2);(A,C,5)\n0'
-        },
-        'mst': {
-            sizeLabel: 'Number of Nodes',
-            sizeHint: 'Number of nodes in graph (2-10)',
-            manualHint: 'Format: nodes\\nedges (edges like: (A,B,4);(B,C,2))',
-            manualPlaceholder: '4\n(A,B,4);(B,C,2);(A,C,5);(B,D,3)'
-        },
-        'graph': {
-            sizeLabel: 'Number of Nodes',
-            sizeHint: 'Number of nodes in graph (2-10)',
-            manualHint: 'Format: nodes\\nedges\\nstart_node (edges like: (A,B);(B,C))',
-            manualPlaceholder: '4\n(A,B);(B,C);(A,C)\n0'
-        },
-        'subset generation': {
-            sizeLabel: 'Number of Elements',
-            sizeHint: 'Number of elements (2-15)',
-            manualHint: 'Comma-separated numbers: 1, 2, 3, 4',
-            manualPlaceholder: '1, 2, 3, 4'
-        },
-        '0/1 knapsack': {
-            sizeLabel: 'Number of Items',
-            sizeHint: 'Number of items (2-10)',
-            manualHint: 'Format: n\\nweights\\nvalues\\ncapacity (each on new line, comma-separated)',
-            manualPlaceholder: '3\n2, 3, 4\n3, 4, 5\n5'
-        }
-    };
-
-    function updateInputHints(player) {
-    const category = (player === 1 ? p1Category : p2Category).trim().toLowerCase();
-    let hints = inputHints[category];
-    
-    if (!hints) {
-        console.warn(`Category "${category}" not found in inputHints, falling back to "sorting"`);
-        hints = inputHints['sorting'];
-    }
-
-    console.log(`updateInputHints(${player}): category="${category}", hints=`, hints);
-
-    const sizeLabel = document.getElementById(`p${player}-size-label`);
-    const sizeHint = document.getElementById(`p${player}-size-hint`);
-    const sizeDiv = document.getElementById(`p${player}-size`).parentElement;
-    const manualHint = document.getElementById(`p${player}-manual-hint`);
-    const manualInput = document.getElementById(`p${player}-manual`);
-
-    // Optional fields
-    const searchKeyManualDiv = document.getElementById(`p${player}-search-key-div`);
-    const searchKeyRandomDiv = document.getElementById(`p${player}-search-key-random-div`);
-    const textManualDiv = document.getElementById(`p${player}-text-manual-div`);
-    const patternManualDiv = document.getElementById(`p${player}-pattern-manual-div`);
-    const patternRandomDiv = document.getElementById(`p${player}-pattern-random-div`);
-    const graphFields = document.getElementById(`p${player}-graph-fields`);
-
-    // 🔹 RESET visibility each time
-    [searchKeyManualDiv, searchKeyRandomDiv, textManualDiv, patternManualDiv, patternRandomDiv, graphFields]
-        .forEach(div => { if (div) div.style.display = 'none'; });
-    if (sizeDiv) sizeDiv.style.display = 'block';
-    if (manualInput) manualInput.style.display = 'block';
-    if (manualHint) manualHint.textContent = hints.manualHint;
-
-    // 🔹 Searching category
-    if (category === 'searching') {
-        if (searchKeyManualDiv) searchKeyManualDiv.style.display = 'block';
-        if (searchKeyRandomDiv) searchKeyRandomDiv.style.display = 'block';
-        if (sizeLabel) sizeLabel.textContent = hints.sizeLabel;
-        if (sizeHint) sizeHint.textContent = hints.sizeHint;
-        manualInput.placeholder = hints.manualPlaceholder;
-    }
-
-    // 🔹 String Matching category
-    else if (category === 'string matching') {
-        if (sizeDiv) sizeDiv.style.display = 'none';
-        if (textManualDiv) textManualDiv.style.display = 'block';
-        if (patternManualDiv) patternManualDiv.style.display = 'block';
-        if (patternRandomDiv) patternRandomDiv.style.display = 'block';
-        if (manualInput) manualInput.style.display = 'none';
-        manualHint.textContent = hints.manualHint;
-    }
-
-    // 🔹 Graph / Shortest Path category
-    else if (category === 'graph' || category === 'shortest path') {
-        if (graphFields) graphFields.style.display = 'block';
-        if (sizeDiv) sizeDiv.style.display = 'none';
-        if (manualInput) manualInput.style.display = 'none';
-        manualHint.textContent = "Enter nodes, edges, and starting node below.";
-    }
-    // 🔹 MST category
-else if (category === 'mst') {
-    const mstFields = document.getElementById(`p${player}-mst-fields`);
-    if (mstFields) mstFields.style.display = 'block';
-    if (sizeDiv) sizeDiv.style.display = 'none';
-    if (manualInput) manualInput.style.display = 'none';
-    manualHint.textContent = "Enter nodes and weighted edges below.";
-}
-
-// 🔹 Knapsack category
-else if (category === '0/1 knapsack') {
-    const knapsackFields = document.getElementById(`p${player}-knapsack-fields`);
-    if (knapsackFields) knapsackFields.style.display = 'block';
-    if (sizeDiv) sizeDiv.style.display = 'none';
-    if (manualInput) manualInput.style.display = 'none';
-    manualHint.textContent = "Enter number of items, weights, values, and capacity below.";
-}
-
-
-    // 🔹 Default (sorting, subset, etc.)
-    else {
-        if (sizeLabel) sizeLabel.textContent = hints.sizeLabel;
-        if (sizeHint) sizeHint.textContent = hints.sizeHint;
-        manualInput.placeholder = hints.manualPlaceholder;
-    }
-}
-
-
-    // Tab switching for both players
+    // 💡 Tab switching logic
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const player = this.getAttribute('data-player');
-            const tab = this.getAttribute('data-tab');
-            
+        btn.addEventListener('click', function () {
+            const player = this.dataset.player;
+            const tab = this.dataset.tab;
+
             document.querySelectorAll(`.p${player}-tab-btn`).forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            
+
             document.querySelectorAll(`.p${player}-tab`).forEach(t => t.classList.remove('active'));
             document.getElementById(`p${player}-${tab}-tab`).classList.add('active');
         });
     });
-    
-    function generateRandom(player) {
-        const size = parseInt(document.getElementById(`p${player}-size`).value);
-        const category = player === 1 ? p1Category : p2Category;
-        
-        if (size < 2 || size > 500) {
-            alert('Invalid size');
-            return;
+
+    // 💡 Category-specific field logic
+    function updateInputHints(player) {
+        const category = (player === 1 ? p1Category : p2Category);
+        const elementsManual = document.getElementById(`p${player}-elements-manual-div`);
+        const elementsRandom = document.getElementById(`p${player}-elements-random-div`);
+        const stringManual = document.getElementById(`p${player}-string-length-manual-div`);
+        const stringRandom = document.getElementById(`p${player}-string-length-random-div`);
+        const searchKeyDiv = document.getElementById(`p${player}-search-key-div`);
+        const textManual = document.getElementById(`p${player}-text-manual-div`);
+        const patternManual = document.getElementById(`p${player}-pattern-manual-div`);
+        const patternRandom = document.getElementById(`p${player}-pattern-random-div`);
+
+        // Hide all optional fields first
+        [elementsManual, elementsRandom, stringManual, stringRandom,
+         searchKeyDiv, textManual, patternManual, patternRandom].forEach(el => {
+            if (el) el.style.display = 'none';
+        });
+
+        // Show based on category
+        if (["sorting", "searching", "subset generation"].includes(category)) {
+            if (elementsManual) elementsManual.style.display = 'block';
+            if (elementsRandom) elementsRandom.style.display = 'block';
+            if (category === 'searching' && searchKeyDiv) searchKeyDiv.style.display = 'block';
         }
-        
+
+        if (category === "string matching") {
+            if (stringManual) stringManual.style.display = 'block';
+            if (stringRandom) stringRandom.style.display = 'block';
+            if (patternManual) patternManual.style.display = 'block';
+            if (patternRandom) patternRandom.style.display = 'block';
+            if (textManual) textManual.style.display = 'block';
+        }
+    }
+
+    // 💡 Random Input Generation (respects new input fields)
+    function generateRandomWithSearch(player) {
+        const category = player === 1 ? p1Category : p2Category;
+        let payload = { player, action: 'generate', category };
+
+        // Add number of elements or text length if applicable
+        if (["sorting", "searching", "subset generation"].includes(category)) {
+            payload.size = parseInt(document.getElementById(`p${player}-elements-random`).value) || 5;
+        } else if (category === "string matching") {
+            payload.size = parseInt(document.getElementById(`p${player}-string-length-random`).value) || 50;
+            payload.pattern = document.getElementById(`p${player}-pattern-random`).value.trim() || null;
+        }
+
         $.ajax({
             url: '/input',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({
-                player: player,
-                action: 'generate',
-                size: size,
-                category: category
-            }),
-            success: function(response) {
+            data: JSON.stringify(payload),
+            success: function (response) {
                 if (response.success) {
-                    if (player === 1) {
-                        p1Input = response.input;
-                    } else {
-                        p2Input = response.input;
-                    }
-                    document.getElementById(`p${player}-random-preview`).innerHTML = 
-                    `<div class="alert alert-success"><strong>✓ Input Generated!</strong><br><pre>${response.preview}</pre></div>`;
+                    if (player === 1) p1Input = response.input;
+                    else p2Input = response.input;
+
+                    document.getElementById(`p${player}-random-preview`).innerHTML =
+                        `<div class="alert alert-success"><strong>✓ Input Generated!</strong><br><pre>${response.preview}</pre></div>`;
 
                     checkBothInputs();
                 } else {
                     alert('Error: ' + response.error);
                 }
             },
-            error: function() {
-                alert('Error generating input');
-            }
+            error: () => alert('Error generating input')
         });
     }
-    
-    function generateRandomWithSearch(player) {
-    const category = player === 1 ? p1Category : p2Category;
-    let size = 10;
 
-    // Fixed size for string matching
-    if (category === 'string matching') {
-        size = 10;
-    } else {
-        size = parseInt(document.getElementById(`p${player}-size`).value);
-        if (size < 2 || size > 500 || isNaN(size)) {
-            alert('Please enter a valid size (2 - 500).');
-            return;
-        }
-    }
-
-    // For string matching, pattern is optional
-    let pattern = null;
-    if (category === 'string matching') {
-        pattern = document.getElementById(`p${player}-pattern-random`).value.trim();
-    }
-
-    $.ajax({
-        url: '/input',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({
-            player: player,
-            action: 'generate',
-            size: size,
-            category: category,
-            pattern: pattern
-        }),
-        success: function(response) {
-            if (response.success) {
-                // Store input for battle
-                if (player === 1) p1Input = response.input;
-                else p2Input = response.input;
-
-                // ✅ Show generated preview
-                document.getElementById(`p${player}-random-preview`).innerHTML =
-                    `<div class="alert alert-success">
-                        <strong>✓ Input Generated!</strong><br>
-                        <pre>${response.preview}</pre>
-                    </div>`;
-
-                // ✅ Category-specific handling
-                if (category === 'string matching') {
-                    // Show pattern submit button
-                    const patternBtn = document.getElementById(`p${player}-pattern-submit-btn`);
-                    if (patternBtn) patternBtn.style.display = 'block';
-
-                    // Hide search-related fields if visible
-                    const searchDiv = document.getElementById(`p${player}-search-key-random-div`);
-                    if (searchDiv) searchDiv.style.display = 'none';
-                }
-
-                else if (category === 'searching') {
-                    // ✅ Show editable search key input in random tab only
-                    const searchDiv = document.getElementById(`p${player}-search-key-random-div`);
-                    if (searchDiv) searchDiv.style.display = 'block';
-
-                    const searchKeyInput = document.getElementById(`p${player}-search-key-random`);
-                    if (searchKeyInput) {
-                        searchKeyInput.removeAttribute('readonly'); // ensure editable
-                        searchKeyInput.disabled = false;
-                        searchKeyInput.value = ''; // clear old value
-                        searchKeyInput.placeholder = 'Enter number to search';
-                        searchKeyInput.focus();
-                    }
-
-                    // Hide manual search key div if present
-                    const manualDiv = document.getElementById(`p${player}-search-key-div`);
-                    if (manualDiv) manualDiv.style.display = 'none';
-
-                    // Wait until user enters search key
-                    if (typeof checkBothInputs === 'function') checkBothInputs();
-                }
-
-                else {
-                    // ✅ All other categories
-                    if (response.input_complete) checkBothInputs();
-                    else checkBothInputs();
-
-                    // Hide irrelevant fields
-                    const searchDiv = document.getElementById(`p${player}-search-key-random-div`);
-                    const patternBtn = document.getElementById(`p${player}-pattern-submit-btn`);
-                    if (searchDiv) searchDiv.style.display = 'none';
-                    if (patternBtn) patternBtn.style.display = 'none';
-                }
-            } else {
-                alert('Error: ' + response.error);
-            }
-        },
-        error: function() {
-            alert('Error generating input');
-        }
-    });
-}
-
-
-    
-    function submitPatternForStringMatching(player) {
-        // Get the pattern from the field (may be auto-generated or user-entered)
-        const pattern = document.getElementById(`p${player}-pattern-random`).value.trim();
-        
-        if (!pattern) {
-            alert('Please enter or confirm a pattern to search for');
-            return;
-        }
-        
-        // Get the stored text input (which should be a string from generate response)
-        let textInput = player === 1 ? p1Input : p2Input;
-        
-        if (!textInput) {
-            alert('Please generate text first');
-            return;
-        }
-        
-        // If textInput is a string (from old format), extract it
-        if (typeof textInput === 'string' && !textInput.includes('[') && !textInput.includes('(')) {
-            // It's just the text string
-            const finalInput = [textInput, pattern];
-            if (player === 1) {
-                p1Input = finalInput;
-            } else {
-                p2Input = finalInput;
-            }
-        } else if (Array.isArray(JSON.parse(textInput)) || typeof JSON.parse(textInput) === 'string') {
-            // Try to parse if it's JSON representation of tuple
-            try {
-                textInput = JSON.parse(textInput);
-                if (Array.isArray(textInput) && textInput.length === 2) {
-                    textInput = textInput[0]; // Extract text from [text, pattern]
-                }
-            } catch (e) {
-                // Not JSON, keep as is
-            }
-            const finalInput = [textInput, pattern];
-            if (player === 1) {
-                p1Input = finalInput;
-            } else {
-                p2Input = finalInput;
-            }
-        }
-        
-        // Show success message
-        document.getElementById(`p${player}-random-preview`).innerHTML += 
-            `<div class="alert alert-info mt-2"><strong>✓ Pattern Confirmed!</strong> Ready to battle.</div>`;
-        
-        // Hide submit button
-        document.getElementById(`p${player}-pattern-submit-btn`).style.display = 'none';
-        
-        checkBothInputs();
-    }
-    
+    // 💡 Manual Input Submission (handles new fields)
     function submitManual(player) {
-    const category = (player === 1 ? p1Category : p2Category).trim().toLowerCase();
-    let input = null;
-    let searchKey = null;
+        const category = (player === 1 ? p1Category : p2Category);
+        let input = null, searchKey = null, payload = { player, action: 'manual', category };
 
-    // 🔹 String Matching
-    if (category === 'string matching') {
-        const text = document.getElementById(`p${player}-text-manual`).value.trim();
-        const pattern = document.getElementById(`p${player}-pattern-manual`).value.trim();
-        if (!text || !pattern) {
-            alert('Please enter both text and pattern.');
-            return;
-        }
-        input = `${text}\n${pattern}`;
-    }
-
-    // 🔹 Graph / Shortest Path
-    else if (category === 'graph' || category === 'shortest path') {
-        const nodes = document.getElementById(`p${player}-nodes-manual`).value.trim();
-        const edges = document.getElementById(`p${player}-edges-manual`).value.trim();
-        const start = document.getElementById(`p${player}-start-manual`).value.trim();
-        if (!nodes || !edges || !start) {
-            alert("Please fill all fields (nodes, edges, and starting node).");
-            return;
-        }
-        input = `${nodes}\n${edges}\n${start}`;
-    }
-
-    // 🔹 Searching
-    else if (category === 'searching') {
-        const manualText = document.getElementById(`p${player}-manual`).value.trim();
-        const keyVal = document.getElementById(`p${player}-search-key`).value.trim();
-        if (!manualText || !keyVal) {
-            alert("Please enter array and search key.");
-            return;
-        }
-        input = manualText;
-        searchKey = parseInt(keyVal);
-        if (isNaN(searchKey)) {
-            alert('Search key must be a number');
-            return;
-        }
-    }
-    else if (category === 'graph' || category === 'shortest path') {
-    const nodes = document.getElementById(`p${player}-nodes-manual`).value.trim();
-    const edges = document.getElementById(`p${player}-edges-manual`).value.trim();
-    const start = document.getElementById(`p${player}-start-manual`).value.trim();
-    if (!nodes || !edges || !start) {
-        alert("Please fill all fields (nodes, edges, and starting node).");
-        return;
-    }
-    input = `${nodes}\n${edges}\n${start}`;
-}
-
-
-    // 🔹 Default categories
-    else {
-        input = document.getElementById(`p${player}-manual`).value.trim();
-        if (!input) {
-            alert('Please enter input data');
-            return;
-        }
-    }
-
-    // 🔹 AJAX Submission
-    $.ajax({
-        url: '/input',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({
-            player: player,
-            action: 'manual',
-            input_text: input,
-            search_key: searchKey,
-            category: category
-        }),
-        success: function(response) {
-            if (response.success) {
-                if (player === 1) p1Input = response.input;
-                else p2Input = response.input;
-                
-                document.getElementById(`p${player}-status`).innerHTML = 
-                    `<div class="alert alert-success"><strong>✓ Input Submitted!</strong></div>`;
-                checkBothInputs();
-            } else {
-                alert('Error: ' + response.error);
+        if (category === "string matching") {
+            const text = document.getElementById(`p${player}-text-manual`).value.trim();
+            const pattern = document.getElementById(`p${player}-pattern-manual`).value.trim();
+            if (!text || !pattern) return alert('Enter both text and pattern.');
+            input = `${text}\n${pattern}`;
+        } else if (["sorting", "searching", "subset generation"].includes(category)) {
+            const numElements = document.getElementById(`p${player}-elements-manual`).value.trim();
+            if (!numElements) return alert('Please enter the number of elements.');
+            const manualText = document.getElementById(`p${player}-manual`).value.trim();
+            if (!manualText) return alert('Please enter array values.');
+            if (category === "searching") {
+                searchKey = document.getElementById(`p${player}-search-key`).value.trim();
+                if (!searchKey) return alert('Please enter the search key.');
+                searchKey = parseInt(searchKey);
             }
-        },
-        error: function() {
-            alert('Error submitting input');
+            payload.num_elements = parseInt(numElements);
+            input = manualText;
+        } else {
+            input = document.getElementById(`p${player}-manual`).value.trim();
+            if (!input) return alert('Please enter input data.');
         }
-    });
-}
 
-    
+        payload.input_text = input;
+        payload.search_key = searchKey;
+
+        $.ajax({
+            url: '/input',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            success: function (response) {
+                if (response.success) {
+                    if (player === 1) p1Input = response.input;
+                    else p2Input = response.input;
+
+                    document.getElementById(`p${player}-status`).innerHTML =
+                        `<div class="alert alert-success"><strong>✓ Input Submitted!</strong></div>`;
+                    checkBothInputs();
+                } else alert('Error: ' + response.error);
+            },
+            error: () => alert('Error submitting input')
+        });
+    }
+
+    // ✅ Enable Battle Button when both ready
     function checkBothInputs() {
         const btn = document.getElementById('battleBtn');
         if (p1Input && p2Input) {
             btn.disabled = false;
             btn.onclick = () => window.location.href = '/battle';
-        } else {
-            btn.disabled = true;
-        }
+        } else btn.disabled = true;
     }
-    
-    // Initialize hints on page load
-    updateInputHints(1);
-    updateInputHints(2);
-    checkBothInputs();
-    
-    // Debug: Log categories and update debug display
-    console.log('Player 1 Category:', p1Category);
-    console.log('Player 2 Category:', p2Category);
-    document.getElementById('debug-p1-cat').textContent = p1Category || '(empty)';
-    document.getElementById('debug-p2-cat').textContent = p2Category || '(empty)';
-</script>
 
+    // 🔹 Re-run updateInputHints() when the user switches algorithm categories dynamically
+    document.addEventListener("DOMContentLoaded", () => {
+        updateInputHints(1);
+        updateInputHints(2);
+
+        // Optional: Re-check both inputs if categories change
+        checkBothInputs();
+    });
+</script>
 <style>
     .input-section {
         background: linear-gradient(135deg, rgba(255, 0, 100, 0.05), rgba(0, 255, 150, 0.05));
@@ -888,5 +462,5 @@ else if (category === '0/1 knapsack') {
             min-height: auto;
         }
     }
-</style>
+
 {% endblock %}

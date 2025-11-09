@@ -73,64 +73,105 @@
 {% endblock %}
 
 {% block extra_js %}
+<style>
+    .algo-card.disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        pointer-events: none;
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+</style>
+
 <script>
     let selectedP1 = "{{ p1_selected or '' }}";
     let selectedP2 = "{{ p2_selected or '' }}";
-    
+
+    // Store disabled algorithms to prevent duplicate selection
+    let lockedAlgos = new Set();
+
     function selectAlgo(player, algoKey) {
+        // Prevent selecting already locked algorithm
+        if (lockedAlgos.has(algoKey)) {
+            alert("⚠️ This algorithm is already chosen by the other player!");
+            return;
+        }
+
         $.ajax({
             url: '/select_algorithm',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({player: player, algorithm: algoKey}),
-            success: function(response) {
+            data: JSON.stringify({ player: player, algorithm: algoKey }),
+            success: function (response) {
                 if (player === 1) {
                     selectedP1 = algoKey;
-                    document.getElementById('p1-algo').textContent = algoKey.toUpperCase();
+                    lockedAlgos.add(algoKey); // Lock for player 2
+
+                    // Update Player 1 UI
                     document.querySelectorAll('#player1-algos .algo-card').forEach(card => {
                         card.classList.remove('selected');
                     });
-                    // Find the card by algorithm key from the grid
                     document.querySelectorAll('#player1-algos .algo-card').forEach(card => {
                         if (card.getAttribute('onclick').includes(`'${algoKey}'`)) {
                             card.classList.add('selected');
+                        }
+                    });
+                    document.getElementById('p1-algo').textContent = algoKey.toUpperCase();
+
+                    // Disable same algo in Player 2's list
+                    document.querySelectorAll('#player2-algos .algo-card').forEach(card => {
+                        if (card.getAttribute('onclick').includes(`'${algoKey}'`)) {
+                            card.classList.add('disabled');
+                            card.style.pointerEvents = 'none';
+                            card.style.opacity = '0.3';
                         }
                     });
                 } else {
                     selectedP2 = algoKey;
-                    document.getElementById('p2-algo').textContent = algoKey.toUpperCase();
+                    lockedAlgos.add(algoKey); // Lock for player 1
+
+                    // Update Player 2 UI
                     document.querySelectorAll('#player2-algos .algo-card').forEach(card => {
                         card.classList.remove('selected');
                     });
-                    // Find the card by algorithm key from the grid
                     document.querySelectorAll('#player2-algos .algo-card').forEach(card => {
                         if (card.getAttribute('onclick').includes(`'${algoKey}'`)) {
                             card.classList.add('selected');
                         }
                     });
+                    document.getElementById('p2-algo').textContent = algoKey.toUpperCase();
+
+                    // Disable same algo in Player 1's list
+                    document.querySelectorAll('#player1-algos .algo-card').forEach(card => {
+                        if (card.getAttribute('onclick').includes(`'${algoKey}'`)) {
+                            card.classList.add('disabled');
+                            card.style.pointerEvents = 'none';
+                            card.style.opacity = '0.3';
+                        }
+                    });
                 }
+
                 checkNextButton();
             }
         });
     }
-    
+
     function checkNextButton() {
         const nextBtn = document.getElementById('nextBtn');
-        if (selectedP1 && selectedP2) {
-            nextBtn.disabled = false;
-        } else {
-            nextBtn.disabled = true;
-        }
+        nextBtn.disabled = !(selectedP1 && selectedP2);
     }
-    
+
     document.getElementById('nextBtn').addEventListener('click', () => {
-        if (selectedP1 && selectedP2) {
-            window.location.href = '/input';
-        }
-    });
-    
+    if (selectedP1 && selectedP2) {
+        // ✅ Redirect with selected algorithms so input.html knows which categories to show
+        window.location.href = `/input?p1=${selectedP1}&p2=${selectedP2}`;
+    } else {
+        alert("⚠️ Both players must select their algorithms first!");
+    }
+});
+
     checkNextButton();
 </script>
+
 
 <style>
     .algorithms-grid {
