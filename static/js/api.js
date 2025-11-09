@@ -57,7 +57,8 @@ const API = {
         return this.post('/input', { 
             action: 'generate', 
             size, 
-            category 
+            category,
+            player
         });
     },
     

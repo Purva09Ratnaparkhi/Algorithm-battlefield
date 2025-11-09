@@ -172,25 +172,49 @@ def input_page():
     """Input Entry Page - Each player provides their own input"""
     
     def parse_edges(edge_string):
-        """Parse edge string format: (A,B,4);(B,C,2) or (A,B);(B,C)"""
+        """
+        Parse edge string format: (A,B,4);(B,C,2) or (A,B);(B,C)
+        Supports flexible spacing and meaningful error messages.
+        """
         edges = []
         try:
-            # Split by semicolon
-            edge_items = [e.strip() for e in edge_string.split(';')]
+            if not edge_string.strip():
+                raise ValueError("Edge input cannot be empty.")
+            
+            # Split by semicolon (each represents an edge)
+            edge_items = [e.strip() for e in edge_string.split(';') if e.strip()]
+            
             for item in edge_items:
-                if item:
-                    # Remove parentheses
-                    item = item.strip('()')
-                    parts = [p.strip() for p in item.split(',')]
-                    if len(parts) == 2:
-                        # Unweighted edge (A,B)
-                        edges.append((parts[0], parts[1]))
-                    elif len(parts) == 3:
-                        # Weighted edge (A,B,4)
-                        edges.append((parts[0], parts[1], int(parts[2])))
+                # Must start and end with parentheses
+                if not (item.startswith('(') and item.endswith(')')):
+                    raise ValueError(f"Edge '{item}' must be enclosed in parentheses, e.g. (A,B,10)")
+                
+                # Clean and split
+                item = item.strip('()')
+                parts = [p.strip() for p in item.split(',') if p.strip()]
+                
+                # Handle 2 or 3 parts
+                if len(parts) == 2:
+                    # Unweighted edge
+                    edges.append((parts[0], parts[1]))
+                elif len(parts) == 3:
+                    # Weighted edge
+                    try:
+                        weight = int(parts[2])
+                    except ValueError:
+                        raise ValueError(f"Invalid weight '{parts[2]}' in edge {item}. Must be an integer.")
+                    edges.append((parts[0], parts[1], weight))
+                else:
+                    raise ValueError(f"Edge '{item}' must have 2 or 3 parts, e.g. (A,B) or (A,B,10).")
+            
+            if not edges:
+                raise ValueError("No valid edges found. Please check your input format.")
+            
             return edges
+
         except Exception as e:
             raise ValueError(f"Invalid edge format: {e}")
+
     
     def parse_manual_input(input_text, category, pattern=None):
         """Parse manual input based on category format"""
@@ -205,13 +229,15 @@ def input_page():
             return [int(x.strip()) for x in input_text.split(',')]
         
         elif category == 'string matching':
-            if action == 'generate':
-                # Generate only the random text
-                text = generate_random_input('string_matching', size)
-                session[f'p{player}_input'] = text  # temporarily store text only
-                return jsonify(success=True, input=text, preview=text)
+            # Expect input in format: text\npattern
+            lines = [line.strip() for line in input_text.split('\n') if line.strip()]
+            if len(lines) < 2:
+                raise ValueError("Please enter both text and pattern (each on new line).")
+            text, pattern = lines[0], lines[1]
+            return (text, pattern)
+
             
-            elif action == 'submit_pattern':
+        elif action == 'submit_pattern':
                 # Accept pattern from frontend and combine it with text
                 pattern = data.get('pattern')
                 text = session.get(f'p{player}_input')
@@ -222,15 +248,15 @@ def input_page():
                 return jsonify(success=True, input=[text, pattern])
         
         elif category in ['shortest_path', 'graph']:
-            # Format: nodes\nedges\nstart_node
             lines = [line.strip() for line in input_text.split('\n') if line.strip()]
             if len(lines) < 3:
                 raise ValueError("Format should be: nodes\\nedges\\nstart_node (each on new line)")
-            
-            num_nodes = int(lines[0])
+
+            nodes = [n.strip() for n in lines[0].split(',')]
             edges = parse_edges(lines[1])
-            start_node = int(lines[2])
-            
+            start_node = lines[2].strip()
+
+            num_nodes = len(nodes)
             return (num_nodes, edges, start_node)
         
         elif category == 'mst':
@@ -270,49 +296,67 @@ def input_page():
         
         if action == 'generate':
             size = int(data.get('size', 5))
-            pattern = data.get('pattern')  # For string matching, user-provided pattern
+            pattern = data.get('pattern')
             
             try:
-                input_data = generate_random_input(category_normalized, size)
                 
-                # For string matching, if user provided a pattern, override the generated one
-                if category_normalized == 'string_matching' and pattern and isinstance(input_data, tuple) and len(input_data) == 2:
-                    text, _ = input_data
-                    input_data = (text, pattern)
-                
+                category_normalized = category_normalized.replace('_', ' ')
+                generated = generate_random_input(category_normalized, size)
+
+                # Handle (data, formatted_preview) or simple data
+                if isinstance(generated, tuple) and len(generated) == 2 and isinstance(generated[1], str):
+                    input_data, formatted_preview = generated
+                else:
+                    input_data, formatted_preview = generated, str(generated)
+
+                # 🔹 Handle string matching case
+                if category_normalized == 'string_matching':
+                    # If user provided pattern, combine it with generated text
+                    if pattern and isinstance(input_data, str):
+                        input_data = (input_data, pattern)
+                        formatted_preview = f"Text: {input_data[0][:50]}...\nPattern: {pattern}"
+                    else:
+                        # Pattern will be entered later
+                        formatted_preview = f"Text: {input_data[:50]}...\nPattern: (Enter manually)"
+
+                # 🔹 Save to session
                 if player == 1:
                     session['input_p1'] = input_data
                 else:
                     session['input_p2'] = input_data
-                
                 session.modified = True
-                
-                # For searching, extract and display the target
+
+                # 🔹 Build response (formatted nicely for frontend)
                 response_data = {
                     'success': True,
-                    'input': str(input_data),
-                    'input_complete': False,  # Flag to indicate if input is ready for battle
+                    'input': formatted_preview,      # show formatted text
+                    'preview': formatted_preview,    # ensure same field for JS
+                    'input_complete': False          # will become True for most categories
                 }
-                
-                if category_normalized == 'searching' and isinstance(input_data, tuple) and len(input_data) == 2:
-                    arr, target = input_data
-                    response_data['preview'] = f"Array: {str(arr)[:100]}... Target: {target}"
-                    response_data['search_key'] = target  # Return the auto-generated search key
-                    response_data['input_complete'] = True  # Searching input is complete
+
+                # ✅ Searching category: show array + target
+                if category_normalized == 'searching':
+                    # Only array generated — target entered manually later
+                    response_data['preview'] = f"Array: {input_data}\nTarget: (Enter manually)"
+                    response_data['input'] = input_data
+                    response_data['input_complete'] = False  # Wait until user enters search key
+
+                # ✅ String matching (with pattern entered)
                 elif category_normalized == 'string_matching' and isinstance(input_data, tuple) and len(input_data) == 2:
                     text, pat = input_data
-                    preview_text = text[:50] if len(text) > 50 else text
-                    response_data['preview'] = f"Text: {preview_text}... Pattern: {pat}"
-                    response_data['pattern'] = pat  # Send the generated/provided pattern to frontend
-                    response_data['input_complete'] = True  # String matching now has both text and pattern
+                    response_data['preview'] = f"Text: {text[:50]}...\nPattern: {pat}"
+                    response_data['pattern'] = pat
+                    response_data['input_complete'] = True
+
+                # ✅ All other categories (graph, knapsack, etc.)
                 else:
-                    preview_str = str(input_data)[:150]
-                    if len(str(input_data)) > 150:
-                        preview_str += '...'
-                    response_data['preview'] = preview_str
-                    response_data['input_complete'] = True  # Other categories are complete
-                
+                    # For graph & knapsack, formatted_preview is already beautiful multiline text
+                    response_data['preview'] = formatted_preview
+                    response_data['input'] = formatted_preview
+                    response_data['input_complete'] = True
+
                 return jsonify(response_data)
+
             except Exception as e:
                 return jsonify({'success': False, 'error': str(e)})
         

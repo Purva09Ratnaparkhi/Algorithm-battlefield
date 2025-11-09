@@ -221,3 +221,20 @@ footer {
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #ff6b9d, #a78bfa);
 }
+
+/* Placeholder text color fix for all browsers */
+::placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+    opacity: 1; /* ensures visibility on Firefox */
+}
+
+/* Vendor prefixes for better compatibility */
+::-webkit-input-placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+:-ms-input-placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+::-ms-input-placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+}

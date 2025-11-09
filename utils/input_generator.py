@@ -4,85 +4,72 @@ import random
 import string
 
 
-def generate_random_input(algorithm_type, size=50):
+def generate_random_input(algorithm_type, size=5):
     """
-    Generate random input based on algorithm type
-    
-    Args:
-        algorithm_type: Type of algorithm
-        size: Size of input data
-    
-    Returns:
-        Generated input suitable for the algorithm
+    Generate random input based on algorithm type in human-readable format
     """
+    import random
+    import string
+
     if algorithm_type == 'sorting':
         return [random.randint(1, 1000) for _ in range(size)]
-    
+
     elif algorithm_type == 'searching':
         arr = [random.randint(1, 1000) for _ in range(size)]
-        # Generate a completely random search key (may or may not exist in array)
-        target = random.randint(1, 1000)
-        return (arr, target)
-    
-    elif algorithm_type == 'string_matching':
-        # Generate only random text; pattern will be added manually by user later
+        return arr
+
+    elif algorithm_type == 'string matching':
+        # Generate only random text (pattern entered manually)
         text = ''.join(random.choices(string.ascii_lowercase, k=size))
         return text
-    
-    elif algorithm_type == 'shortest_path':
-        # Return tuple: (nodes, edges, start_node)
-        nodes = min(size, 10)  # Limit nodes for performance
+
+    elif algorithm_type in ['graph', 'shortest path']:
+        # Generate nodes as letters A, B, C, ...
+        nodes = [chr(65 + i) for i in range(min(size, 10))]
         edges = []
-        for i in range(nodes):
-            for j in range(i + 1, nodes):
-                if random.random() < 0.4:
-                    weight = random.randint(1, 100)
-                    edges.append((i, j, weight))
-        start_node = random.randint(0, nodes - 1)
-        return (nodes, edges, start_node)
-    
+        for i in range(len(nodes)):
+            for j in range(i + 1, len(nodes)):
+                if random.random() < 0.4:  # ~40% chance of edge
+                    weight = random.randint(1, 20)
+                    edges.append(f"({nodes[i]},{nodes[j]},{weight})")
+        start_node = random.choice(nodes)
+        edges_str = '; '.join(edges)
+        formatted = f"{len(nodes)}\n{edges_str}\n{start_node}"
+        return (len(nodes), edges, start_node), formatted
+
     elif algorithm_type == 'mst':
-        # Return tuple: (nodes, edges)
-        nodes = min(size, 10)
+        nodes = [chr(65 + i) for i in range(min(size, 10))]
         edges = []
-        for i in range(nodes):
-            for j in range(i + 1, nodes):
+        for i in range(len(nodes)):
+            for j in range(i + 1, len(nodes)):
                 if random.random() < 0.4:
-                    weight = random.randint(1, 100)
-                    edges.append((i, j, weight))
-        return (nodes, edges)
-    
-    elif algorithm_type == 'graph':
-        # Return tuple: (nodes, edges, start_node)
-        nodes = min(size, 10)
-        edges = []
-        for i in range(nodes):
-            for j in range(nodes):
-                if i != j and random.random() < 0.2:
-                    edges.append((i, j))
-        start_node = random.randint(0, nodes - 1)
-        return (nodes, edges, start_node)
-    
+                    weight = random.randint(1, 20)
+                    edges.append(f"({nodes[i]},{nodes[j]},{weight})")
+        edges_str = '; '.join(edges)
+        formatted = f"{len(nodes)}\n{edges_str}"
+        return (len(nodes), edges), formatted
+
+    elif algorithm_type == '0/1 knapsack':
+        n = min(size, 10)
+        values = [random.randint(10, 100) for _ in range(n)]
+        weights = [random.randint(5, 50) for _ in range(n)]
+        capacity = random.randint(sum(weights)//3, sum(weights)//2)
+        formatted = (
+            f"{n}\n"
+            f"Values: {', '.join(map(str, values))}\n"
+            f"Weights: {', '.join(map(str, weights))}\n"
+            f"Capacity: {capacity}"
+        )
+        return (n, weights, values, capacity), formatted
+
     elif algorithm_type == 'subset generation':
-        # Generate random numbers for subset generation
-        # IMPORTANT: Keep size small! 2^n grows exponentially
-        # 15 elements = 32,768 subsets (manageable)
-        # 16 elements = 65,536 subsets (large)
-        # 17+ elements = too many subsets
-        num_elements = min(size, 15)  # Cap at 15 to avoid 2^n explosion
+        num_elements = min(size, 15)
         arr = [random.randint(1, 100) for _ in range(num_elements)]
         return arr
-    
-    elif algorithm_type == '0/1 knapsack':
-        # Return tuple: (items, weights, values, capacity)
-        n = min(size, 10)
-        weights = [random.randint(1, 50) for _ in range(n)]
-        values = [random.randint(1, 100) for _ in range(n)]
-        capacity = sum(weights) // 2
-        return (n, weights, values, capacity)
-    
+
     else:
         return [random.randint(1, 1000) for _ in range(size)]
+
 
 
 def validate_array_input(input_str):
