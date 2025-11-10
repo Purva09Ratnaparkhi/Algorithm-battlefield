@@ -19,8 +19,8 @@ def generate_random_input(algorithm_type, size=5):
         return arr
 
     elif algorithm_type == 'string matching':
-        # Generate only random text (pattern entered manually)
-        text = ''.join(random.choices(string.ascii_lowercase, k=size))
+        # Generate only the text for now - pattern will be provided by user
+        text = ''.join(random.choices(string.ascii_lowercase, k=size * 2))
         return text
 
     elif algorithm_type in ['graph', 'shortest path']:

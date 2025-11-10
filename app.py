@@ -359,20 +359,23 @@ def input_page():
 
 
                 # ✅ String matching - special handling
-                # ✅ String matching - special handling
                 elif category_normalized == 'string matching':
-                    text_generated = input_data if isinstance(input_data, str) else str(input_data)
-
-                    if pattern:
-                        # Combine generated text and entered pattern
-                        input_data = (text_generated, pattern)
-                        formatted_preview = f"Text: {text_generated[:200]}...\nPattern: {pattern}"
+                    if isinstance(input_data, tuple) and len(input_data) == 2:
+                        # Both text and pattern are generated
+                        text, pattern = input_data
+                        formatted_preview = f"Text: {text[:200]}...\nPattern: {pattern}"
                         input_complete = True
                     else:
-                        # Keep the generated text visible and saved
-                        input_data = text_generated
-                        formatted_preview = f"Text: {text_generated[:200]}...\nPattern: (Enter pattern manually)"
-                        input_complete = False
+                        # Fallback to old behavior if something went wrong
+                        text_generated = input_data if isinstance(input_data, str) else str(input_data)
+                        if pattern:
+                            input_data = (text_generated, pattern)
+                            formatted_preview = f"Text: {text_generated[:200]}...\nPattern: {pattern}"
+                            input_complete = True
+                        else:
+                            input_data = text_generated
+                            formatted_preview = f"Text: {text_generated[:200]}...\nPattern: (Enter pattern manually)"
+                            input_complete = False
 
                 # ✅ Save final input to session ONLY if complete
                 if input_data is not None and input_complete:
@@ -434,11 +437,15 @@ def input_page():
 
 
                 # ✅ For string matching (text + pattern)
-                if category_normalized == 'string matching' and '\n' in input_text:
-                    lines = input_text.split('\n', 1)
-                    text = lines[0].strip()
-                    pattern_from_input = lines[1].strip() if len(lines) > 1 else ''
-                    parsed_input = parse_manual_input(text, category_normalized, pattern_from_input)
+                if category_normalized == 'string matching':
+                    text = data.get('text', '').strip()
+                    pattern = data.get('pattern', '').strip()
+                    
+                    if not text or not pattern:
+                        raise ValueError("Both text and pattern are required for string matching")
+                    
+                    # Always store as a list to maintain consistency in session
+                    parsed_input = [text, pattern]
 
                 # ✅ For searching, use num_elements and search_key if provided
                 elif category_normalized == 'searching':
@@ -482,15 +489,27 @@ def input_page():
             player = data.get('player')
             pattern = data.get('pattern')
             category = data.get('category', '').lower()
-            text = session.get('input_p1') if player == 1 else session.get('input_p2')
-
+            
+            # Get previously stored text
+            session_key = 'input_p1' if player == 1 else 'input_p2'
+            stored_data = session.get(session_key)
+            
+            # Extract text from stored data
+            if isinstance(stored_data, (list, tuple)):
+                text = stored_data[0]  # Get first element if list/tuple
+            else:
+                text = stored_data  # If it's just the text string
+            
             if not text:
                 return jsonify({'success': False, 'error': 'No generated text found. Generate random text first.'})
             if not pattern:
                 return jsonify({'success': False, 'error': 'Pattern missing.'})
-
-            # Combine text + pattern into tuple
-            combined_input = (text, pattern)
+            
+            if not isinstance(text, str):
+                return jsonify({'success': False, 'error': f'Invalid text type. Expected string, got {type(text)}'})
+            
+            # Store as list for consistency
+            combined_input = [text, pattern]
             if player == 1:
                 session['input_p1'] = combined_input
             else:
@@ -576,20 +595,23 @@ def battle():
                     return run_algorithm(algo, arr, key)
 
                 elif category_norm == 'string_matching':
-                    # Normalize to ensure correct (text, pattern) order
-                    if isinstance(input_data, (tuple, list)):
-                        # Detect and correct reversed order (pattern, text)
-                        if isinstance(input_data[0], str) and isinstance(input_data[1], str):
-                            text, pattern = input_data
-                            # Detect if pattern accidentally comes first
-                            if len(input_data[0]) < len(input_data[1]):
-                                # The first is likely the pattern (shorter)
-                                text, pattern = input_data[1], input_data[0]
-                        else:
-                            raise Exception("String matching input must contain strings (text, pattern).")
-                    else:
-                        raise Exception("Invalid input format for string matching algorithms.")
-
+                    # For string matching, we expect input_data to be [text, pattern]
+                    if not isinstance(input_data, (tuple, list)):
+                        raise Exception(f"Invalid input format for string matching algorithms. Expected list or tuple, got {type(input_data)}")
+                    
+                    if len(input_data) != 2:
+                        raise Exception(f"String matching input must contain exactly 2 elements (text, pattern), got {len(input_data)}")
+                    
+                    # Extract text and pattern
+                    text, pattern = input_data
+                    
+                    # Validate types
+                    if not isinstance(text, str):
+                        raise Exception(f"Text must be a string, got {type(text)}")
+                    if not isinstance(pattern, str):
+                        raise Exception(f"Pattern must be a string, got {type(pattern)}")
+                    
+                    # No need to swap text and pattern anymore - trust the order
                     return run_algorithm(algo, text, pattern)
 
                 # ✅ 0/1 Knapsack (remove the unused `n`)
