@@ -27,29 +27,62 @@ def generate_random_input(algorithm_type, size=5):
         # Generate nodes as letters A, B, C, ...
         nodes = [chr(65 + i) for i in range(min(size, 10))]
         edges = []
+
+        # Generate random weighted edges (40% probability)
         for i in range(len(nodes)):
             for j in range(i + 1, len(nodes)):
                 if random.random() < 0.4:  # ~40% chance of edge
                     weight = random.randint(1, 20)
-                    edges.append(f"({nodes[i]},{nodes[j]},{weight})")
+                    edges.append((nodes[i], nodes[j], weight))
+
+        # Ensure every node appears in at least one edge
+        connected = set([n for edge in edges for n in edge[:2]])
+        missing = [n for n in nodes if n not in connected]
+        for m in missing:
+            other = random.choice([n for n in nodes if n != m])
+            weight = random.randint(1, 20)
+            edges.append((m, other, weight))
+
+        # Choose a random start node for shortest path
         start_node = random.choice(nodes)
-        edges_str = '; '.join(edges)
-        formatted = f"{len(nodes)}\n{edges_str}\n{start_node}"
+
+        # Format edges as strings (A,B,10);(B,C,5)
+        edges_str = '; '.join([f"({u},{v},{w})" for u, v, w in edges])
+
+        # ✅ Include full node list at the top
+        formatted = f"{','.join(nodes)}\n{edges_str}\n{start_node}"
         return (len(nodes), edges, start_node), formatted
 
+
     elif algorithm_type == 'mst':
+        # Generate nodes as letters A, B, C, ...
         nodes = [chr(65 + i) for i in range(min(size, 10))]
         edges = []
+
+        # Generate random weighted edges (40% probability)
         for i in range(len(nodes)):
             for j in range(i + 1, len(nodes)):
                 if random.random() < 0.4:
                     weight = random.randint(1, 20)
-                    edges.append(f"({nodes[i]},{nodes[j]},{weight})")
-        edges_str = '; '.join(edges)
-        formatted = f"{len(nodes)}\n{edges_str}"
+                    edges.append((nodes[i], nodes[j], weight))
+
+        # Ensure all nodes appear in at least one edge
+        connected = set([n for edge in edges for n in edge[:2]])
+        missing = [n for n in nodes if n not in connected]
+        for m in missing:
+            other = random.choice([n for n in nodes if n != m])
+            weight = random.randint(1, 20)
+            edges.append((m, other, weight))
+
+        # Format output
+        edges_str = '; '.join([f"({u},{v},{w})" for u, v, w in edges])
+        formatted = f"{','.join(nodes)}\n{edges_str}"
+
         return (len(nodes), edges), formatted
 
-    elif algorithm_type == '0/1 knapsack':
+
+    elif algorithm_type in ['0/1 knapsack', '0/1_knapsack']:
+
         n = min(size, 10)
         values = [random.randint(10, 100) for _ in range(n)]
         weights = [random.randint(5, 50) for _ in range(n)]

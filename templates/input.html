@@ -38,25 +38,16 @@
                     <!-- Text Length (string matching) -->
                     <div class="mb-4" id="p1-string-length-random-div" style="display:none;">
                         <label class="form-label text-light fw-bold">Enter Text Length</label>
-                        <input type="number" id="p1-string-length-random" class="form-control" placeholder="e.g. 50" min="5">
+                        <input type="number" id="p1-string-length-random" class="form-control" placeholder="e.g. 10" min="5">
                     </div>
 
                     <!-- KNAPSACK RANDOM -->
-                    <div class="mb-4" id="p1-knapsack-items-random-div" style="display:none;">
-                        <label class="form-label text-light fw-bold">Number of Items</label>
-                        <input type="number" id="p1-knapsack-items-random" class="form-control" placeholder="e.g. 5" min="1">
-                    </div>
-                    <div class="mb-4" id="p1-knapsack-capacity-random-div" style="display:none;">
-                        <label class="form-label text-light fw-bold">Knapsack Capacity</label>
-                        <input type="number" id="p1-knapsack-capacity-random" class="form-control" placeholder="e.g. 50" min="1">
-                    </div>
-                    <div class="mb-4" id="p1-knapsack-max-weight-random-div" style="display:none;">
-                        <label class="form-label text-light fw-bold">Max Weight per Item</label>
-                        <input type="number" id="p1-knapsack-max-weight-random" class="form-control" placeholder="e.g. 20" min="1">
-                    </div>
-                    <div class="mb-4" id="p1-knapsack-max-value-random-div" style="display:none;">
-                        <label class="form-label text-light fw-bold">Max Value per Item</label>
-                        <input type="number" id="p1-knapsack-max-value-random" class="form-control" placeholder="e.g. 100" min="1">
+                    
+                    <!-- Knapsack Random Input (Add inside Random tab for each player) -->
+                    <div class="mb-4" id="p1-items-random-div" style="display:none;">
+                    <label class="form-label text-light fw-bold">Number of Items</label>
+                    <input type="number" id="p1-items-random" class="form-control" value="3" min="1" max="20">
+                    <small class="text-muted">Enter number of items for random generation</small>
                     </div>
 
                     <!-- Search Key (searching) -->
@@ -71,6 +62,13 @@
                         <label class="form-label text-light fw-bold">Pattern to Search</label>
                         <input type="text" id="p1-pattern-random" class="form-control" placeholder="Enter pattern">
                     </div>
+
+                    <!-- Number of Nodes (Graph, MST, Shortest Path) -->
+                    <div class="mb-4" id="p1-nodes-random-div" style="display:none;">
+                        <label class="form-label text-light fw-bold">Enter Number of Nodes</label>
+                        <input type="number" id="p1-nodes-random" class="form-control" placeholder="e.g. 5" min="2">
+                    </div>
+
 
                     <button class="btn btn-success w-100 btn-lg" onclick="generateRandomWithSearch(1)">
                         Generate Random
@@ -93,7 +91,7 @@
                     <!-- Text Length (string matching) -->
                     <div class="mb-4" id="p1-string-length-manual-div" style="display:none;">
                         <label class="form-label text-light fw-bold">Enter Text Length</label>
-                        <input type="number" id="p1-string-length-manual" class="form-control" placeholder="e.g. 50" min="5">
+                        <input type="number" id="p1-string-length-manual" class="form-control" placeholder="e.g. 10" min="5">
                     </div>
 
                     <!-- Main Input (sorting/searching/subset) -->
@@ -101,6 +99,42 @@
                         <label class="form-label text-light fw-bold">Input Data</label>
                         <textarea id="p1-manual" class="form-control" rows="6" placeholder="Enter numbers separated by space or comma"></textarea>
                         <small class="text-muted" id="p1-manual-hint">Enter input according to category</small>
+                    </div>
+                    
+                     <!-- 🔹 NEW: Graph / Shortest Path manual input fields -->
+                    <div id="p1-graph-fields" style="display:none;">
+                        <div class="mb-3">
+                            <label class="form-label text-light fw-bold">Nodes</label>
+                            <input type="text" id="p1-nodes-manual" class="form-control" placeholder="A,B,C,D">
+                            <small class="text-muted">Comma-separated node names (e.g. A,B,C,D)</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-light fw-bold">Edges</label>
+                            <textarea id="p1-edges-manual" class="form-control" rows="3"
+                                placeholder="(A,B,10);(B,C,5)"></textarea>
+                            <small class="text-muted">Use semicolons between edges.  
+                                Weighted example → (A,B,10);(C,D,34)</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-light fw-bold">Starting Node</label>
+                            <input type="text" id="p1-start-manual" class="form-control" placeholder="A">
+                            <small class="text-muted">Enter the starting node (e.g. A)</small>
+                        </div>
+                    </div>
+                    <!-- 🔹 END of new block -->
+                    <!-- 🔹 NEW: MST manual input fields -->
+                    <div id="p1-mst-fields" style="display:none;">
+                        <div class="mb-3">
+                            <label class="form-label text-light fw-bold">Nodes</label>
+                            <input type="text" id="p1-mst-nodes-manual" class="form-control" placeholder="A,B,C,D">
+                            <small class="text-muted">Comma-separated node names (e.g. A,B,C,D)</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-light fw-bold">Weighted Edges</label>
+                            <textarea id="p1-mst-edges-manual" class="form-control" rows="3"
+                                placeholder="(A,B,10);(B,C,5);(C,D,3)"></textarea>
+                            <small class="text-muted">Weighted edges: (A,B,10);(B,C,5);(C,D,3)</small>
+                        </div>
                     </div>
 
                     <!-- KNAPSACK MANUAL -->
@@ -169,22 +203,14 @@
                         <label class="form-label text-light fw-bold">Enter Text Length</label>
                         <input type="number" id="p2-string-length-random" class="form-control" placeholder="e.g. 50" min="5">
                     </div>
-                    <div class="mb-4" id="p2-knapsack-items-random-div" style="display:none;">
-                        <label class="form-label text-light fw-bold">Number of Items</label>
-                        <input type="number" id="p2-knapsack-items-random" class="form-control" placeholder="e.g. 5" min="1">
+    
+
+                    <div class="mb-4" id="p2-items-random-div" style="display:none;">
+                    <label class="form-label text-light fw-bold">Number of Items</label>
+                    <input type="number" id="p2-items-random" class="form-control" value="3" min="1" max="20">
+                    <small class="text-muted">Enter number of items for random generation</small>
                     </div>
-                    <div class="mb-4" id="p2-knapsack-capacity-random-div" style="display:none;">
-                        <label class="form-label text-light fw-bold">Knapsack Capacity</label>
-                        <input type="number" id="p2-knapsack-capacity-random" class="form-control" placeholder="e.g. 50" min="1">
-                    </div>
-                    <div class="mb-4" id="p2-knapsack-max-weight-random-div" style="display:none;">
-                        <label class="form-label text-light fw-bold">Max Weight per Item</label>
-                        <input type="number" id="p2-knapsack-max-weight-random" class="form-control" placeholder="e.g. 20" min="1">
-                    </div>
-                    <div class="mb-4" id="p2-knapsack-max-value-random-div" style="display:none;">
-                        <label class="form-label text-light fw-bold">Max Value per Item</label>
-                        <input type="number" id="p2-knapsack-max-value-random" class="form-control" placeholder="e.g. 100" min="1">
-                    </div>
+
                     <div class="mb-4" id="p2-search-key-random-div" style="display:none;">
                         <label class="form-label text-light fw-bold">Search Key</label>
                         <input type="number" id="p2-search-key-random" class="form-control" placeholder="Enter number">
@@ -193,6 +219,11 @@
                     <div class="mb-4" id="p2-pattern-random-div" style="display:none;">
                         <label class="form-label text-light fw-bold">Pattern to Search</label>
                         <input type="text" id="p2-pattern-random" class="form-control" placeholder="Enter pattern">
+                    </div>
+
+                    <div class="mb-4" id="p2-nodes-random-div" style="display:none;">
+                        <label class="form-label text-light fw-bold">Enter Number of Nodes</label>
+                        <input type="number" id="p2-nodes-random" class="form-control" placeholder="e.g. 5" min="2">
                     </div>
 
                     <button class="btn btn-success w-100 btn-lg" onclick="generateRandomWithSearch(2)">
@@ -220,6 +251,43 @@
                         <textarea id="p2-manual" class="form-control" rows="6" placeholder="Enter numbers"></textarea>
                         <small class="text-muted" id="p2-manual-hint">Enter input according to category</small>
                     </div>
+
+                     <!-- 🔹 NEW: Graph / Shortest Path manual input fields -->
+                    <div id="p2-graph-fields" style="display:none;">
+                        <div class="mb-3">
+                            <label class="form-label text-light fw-bold">Nodes</label>
+                            <input type="text" id="p2-nodes-manual" class="form-control" placeholder="A,B,C,D">
+                            <small class="text-muted">Comma-separated node names (e.g. A,B,C,D)</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-light fw-bold">Edges</label>
+                            <textarea id="p2-edges-manual" class="form-control" rows="3"
+                                placeholder="(A,B,10);(B,C,5)"></textarea>
+                            <small class="text-muted">Use semicolons between edges.  
+                                Weighted example → (A,B,10);(C,D,34)</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-light fw-bold">Starting Node</label>
+                            <input type="text" id="p2-start-manual" class="form-control" placeholder="A">
+                            <small class="text-muted">Enter the starting node (e.g. A)</small>
+                        </div>
+                    </div>
+                    <!-- 🔹 END of new block -->
+                     <!-- 🔹 MST manual input fields -->
+                    <div id="p2-mst-fields" style="display:none;">
+                        <div class="mb-3">
+                            <label class="form-label text-light fw-bold">Nodes</label>
+                            <input type="text" id="p2-mst-nodes-manual" class="form-control" placeholder="A,B,C,D">
+                            <small class="text-muted">Comma-separated node names (e.g. A,B,C,D)</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-light fw-bold">Weighted Edges</label>
+                            <textarea id="p2-mst-edges-manual" class="form-control" rows="3"
+                                placeholder="(A,B,10);(B,C,5);(C,D,3)"></textarea>
+                            <small class="text-muted">Weighted edges: (A,B,10);(B,C,5);(C,D,3)</small>
+                        </div>
+                    </div>
+
 
                     <!-- KNAPSACK MANUAL -->
                     <div class="mb-4" id="p2-knapsack-items-manual-div" style="display:none;">
@@ -309,21 +377,8 @@
             if (el) el.style.display = 'none';
         });
 
-        // Show based on category + tab
-        if (category === 'knapsack') {
-            if (activeTab === 'random') {
-                ['knapsack-items-random-div', 'knapsack-capacity-random-div', 'knapsack-max-weight-random-div', 'knapsack-max-value-random-div'].forEach(id => {
-                    const el = document.getElementById(`p${player}-${id}`);
-                    if (el) el.style.display = 'block';
-                });
-            } else {
-                ['knapsack-items-manual-div', 'knapsack-capacity-manual-div', 'knapsack-values-manual-div', 'knapsack-weights-manual-div'].forEach(id => {
-                    const el = document.getElementById(`p${player}-${id}`);
-                    if (el) el.style.display = 'block';
-                });
-            }
-        }
-        else if (["sorting", "searching", "subset generation"].includes(category)) {
+
+         if (["sorting", "searching", "subset generation"].includes(category)) {
             if (activeTab === 'random') {
                 document.getElementById(`p${player}-elements-random-div`).style.display = 'block';
                 if (category === 'searching') document.getElementById(`p${player}-search-key-random-div`).style.display = 'block';
@@ -343,6 +398,46 @@
                 document.getElementById(`p${player}-pattern-manual-div`).style.display = 'block';
             }
         }
+
+        // ✅ Knapsack category
+        else if (category === '0/1 knapsack') {
+            if (activeTab === 'random') {
+                const itemsDiv = document.getElementById(`p${player}-items-random-div`);
+                if (itemsDiv) itemsDiv.style.display = 'block';
+            } else {
+                const manualFields = [
+                    'knapsack-items-manual-div',
+                    'knapsack-capacity-manual-div',
+                    'knapsack-values-manual-div',
+                    'knapsack-weights-manual-div'
+                ];
+                manualFields.forEach(id => {
+                    const el = document.getElementById(`p${player}-${id}`);
+                    if (el) el.style.display = 'block';
+                });
+            
+            }
+        }
+
+                // ✅ Graph, Shortest Path, and MST categories
+        // ✅ Graph, Shortest Path, and MST categories - RANDOM TAB
+        if (["graph", "shortest path", "mst"].includes(category)) {
+            if (activeTab === 'random') {
+                const nodesDiv = document.getElementById(`p${player}-nodes-random-div`);
+                if (nodesDiv) nodesDiv.style.display = 'block';
+            } else if (activeTab === 'manual') {
+                const graphFields = document.getElementById(`p${player}-graph-fields`);
+                const mstFields = document.getElementById(`p${player}-mst-fields`);
+                if (category === 'graph' || category === 'shortest path') {
+                    if (graphFields) graphFields.style.display = 'block';
+                } else if (category === 'mst') {
+                    if (mstFields) mstFields.style.display = 'block';
+                }
+            }
+        }
+
+
+
     }
 
     // Tab switching
@@ -362,47 +457,73 @@
 
     // Random Generation
     function generateRandomWithSearch(player) {
-        const category = player === 1 ? p1Category : p2Category;
-        let payload = { player, action: 'generate', category };
+    const category = player === 1 ? p1Category : p2Category;
+    let size = 5;
+    let pattern = null;
+    let searchKey = null;
 
-        if (["sorting", "searching", "subset generation"].includes(category)) {
-            payload.size = parseInt(document.getElementById(`p${player}-elements-random`).value) || 5;
-            if (category === "searching") {
-                const key = document.getElementById(`p${player}-search-key-random`).value.trim();
-                if (key) payload.search_key = parseInt(key);
-            }
-        }
-        else if (category === "knapsack") {
-            payload.num_items = parseInt(document.getElementById(`p${player}-knapsack-items-random`).value) || 5;
-            payload.capacity = parseInt(document.getElementById(`p${player}-knapsack-capacity-random`).value) || 50;
-            payload.max_weight = parseInt(document.getElementById(`p${player}-knapsack-max-weight-random`).value) || 20;
-            payload.max_value = parseInt(document.getElementById(`p${player}-knapsack-max-value-random`).value) || 100;
-        }
-        else if (category === "string matching") {
-            payload.size = parseInt(document.getElementById(`p${player}-string-length-random`).value) || 50;
-            const pattern = document.getElementById(`p${player}-pattern-random`).value.trim();
-            if (pattern) payload.pattern = pattern;
-        }
-
-        $.ajax({
-            url: '/input',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(payload),
-            success: function (response) {
-                if (response.success) {
-                    if (player === 1) p1Input = response.input;
-                    else p2Input = response.input;
-                    document.getElementById(`p${player}-random-preview`).innerHTML =
-                        `<div class="alert alert-success"><strong>Generated!</strong><br><pre>${response.preview}</pre></div>`;
-                    checkBothInputs();
-                } else {
-                    alert('Error: ' + response.error);
-                }
-            },
-            error: () => alert('Error generating input')
-        });
+    // ✅ Read user-entered key/pattern before generating
+    if (category === "searching") {
+        const keyField = document.getElementById(`p${player}-search-key-random`);
+        searchKey = keyField && keyField.value.trim() ? parseInt(keyField.value.trim()) : null;
     }
+    else if (category === "string matching") {
+        const patternField = document.getElementById(`p${player}-pattern-random`);
+        pattern = patternField && patternField.value.trim() ? patternField.value.trim() : null;
+    }
+
+    // ✅ Determine size depending on category
+    if (["sorting", "searching", "subset generation"].includes(category)) {
+        size = parseInt(document.getElementById(`p${player}-elements-random`).value) || 5;
+    } else if (category === "string matching") {
+        size = parseInt(document.getElementById(`p${player}-string-length-random`).value) || 10;
+    } else if (["graph", "shortest path", "mst"].includes(category)) {
+        size = parseInt(document.getElementById(`p${player}-nodes-random`).value) || 5;
+    } else if (category === "0/1 knapsack") {
+        const itemsField = document.getElementById(`p${player}-items-random`);
+        size = itemsField ? parseInt(itemsField.value) || 3 : 3;
+    }
+
+    // ✅ Build payload
+    let payload = {
+        player: player,
+        action: 'generate',
+        category: category,
+        size: size,
+        pattern: pattern,        // may be null
+        search_key: searchKey,   // may be null
+    };
+
+    // ✅ Add size-related parameters
+    if (["graph", "shortest path", "mst"].includes(category)) payload.num_nodes = size;
+    if (category === "string matching") payload.text_length = size;
+    if (category === "0/1 knapsack") payload.num_items = size;
+
+    // ✅ Send request
+    $.ajax({
+        url: '/input',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        success: function (response) {
+            if (response.success) {
+                document.getElementById(`p${player}-random-preview`).innerHTML =
+                    `<div class="alert alert-success"><strong>✓ Input Ready!</strong><br><pre>${response.preview}</pre></div>`;
+                if (player === 1) p1Input = response.input;
+                else p2Input = response.input;
+                checkBothInputs();
+            } else {
+                alert('Error: ' + response.error);
+            }
+        },
+        error: function () {
+            alert('Error generating input');
+        }
+    });
+}
+
+
+
 
     // Manual Submit
     function submitManual(player) {
@@ -456,10 +577,39 @@
     }
 
     function submitPatternForStringMatching(player) {
-        const pattern = document.getElementById(`p${player}-pattern-random`).value.trim();
-        if (!pattern) return alert('Enter pattern.');
-        document.getElementById(`p${player}-random-preview`).innerHTML = `<div class="alert alert-info"><strong>Pattern:</strong> "${pattern}"</div>`;
-    }
+    const pattern = document.getElementById(`p${player}-pattern-random`).value.trim();
+    if (!pattern) return alert('Enter pattern.');
+
+    const category = player === 1 ? p1Category : p2Category;
+
+    // Send pattern to backend to combine with previously generated text
+    $.ajax({
+        url: '/input',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            player: player,
+            action: 'submit_pattern',
+            category: category,
+            pattern: pattern
+        }),
+        success: function (response) {
+            if (response.success) {
+                document.getElementById(`p${player}-random-preview`).innerHTML =
+                    `<div class="alert alert-success"><strong>✓ Text & Pattern Ready!</strong><br><pre>${response.input[0].slice(0, 200)}...\nPattern: ${response.input[1]}</pre></div>`;
+                if (player === 1) p1Input = response.input;
+                else p2Input = response.input;
+                checkBothInputs();
+            } else {
+                alert('Error: ' + response.error);
+            }
+        },
+        error: function () {
+            alert('Error submitting pattern.');
+        }
+    });
+}
+
 
     function checkBothInputs() {
         const btn = document.getElementById('battleBtn');
@@ -471,12 +621,32 @@
         }
     }
 
-    // Initialize
-    document.addEventListener("DOMContentLoaded", () => {
+// ✅ Initialize once page and all tabs are fully loaded
+document.addEventListener("DOMContentLoaded", () => {
+    // First quick initialization
+    updateInputFields(1);
+    updateInputFields(2);
+
+    // 🩵 Run again after a small delay to ensure fields are visible
+    setTimeout(() => {
         updateInputFields(1);
         updateInputFields(2);
-        checkBothInputs();
+    }, 500);
+
+    // 🩵 Run once more when user switches tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const player = btn.dataset.player;
+            setTimeout(() => updateInputFields(player), 100);
+        });
     });
+
+    checkBothInputs();
+});
+
+  
+
+
 </script>
 
 <style>

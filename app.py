@@ -1,5 +1,6 @@
 """Algorithm Battlefield Arena - Main Flask Application"""
 
+from unicodedata import category
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 import threading
 import json
@@ -306,11 +307,20 @@ def input_page():
         
         if action == 'generate':
             size = int(data.get('size', 5))
+            category_normalized = category.lower().replace('_', ' ').strip()
+            search_key = data.get('search_key')
             pattern = data.get('pattern')
-            
+
             try:
-                
-                category_normalized = category_normalized.replace('_', ' ')
+                # Normalize category-specific size inputs
+                if category_normalized in ['graph', 'shortest path', 'mst']:
+                    size = int(data.get('num_nodes', size))
+                elif category_normalized == 'string matching':
+                    size = int(data.get('text_length', size))
+                elif category_normalized in ['0/1 knapsack', '0/1_knapsack']:
+                    size = int(data.get('num_items', size))
+
+                # ✅ Generate random data (array/text/etc.)
                 generated = generate_random_input(category_normalized, size)
 
                 # Handle (data, formatted_preview) or simple data
@@ -319,58 +329,98 @@ def input_page():
                 else:
                     input_data, formatted_preview = generated, str(generated)
 
-                # 🔹 Handle string matching case
-                if category_normalized == 'string_matching':
-                    # If user provided pattern, combine it with generated text
-                    if pattern and isinstance(input_data, str):
-                        input_data = (input_data, pattern)
-                        formatted_preview = f"Text: {input_data[0][:50]}...\nPattern: {pattern}"
+                input_complete = True  # Default to complete
+
+                # ✅ Searching category - special handling
+                if category_normalized in ['searching', 'searching ']:
+                    if isinstance(input_data, tuple) and len(input_data) == 2:
+                        # Already combined from earlier
+                        arr, key = input_data
                     else:
-                        # Pattern will be entered later
-                        formatted_preview = f"Text: {input_data[:50]}...\nPattern: (Enter manually)"
+                        # Force array from generated and key from frontend
+                        arr = input_data if isinstance(input_data, list) else []
+                        try:
+                            key = int(search_key) if search_key is not None and str(search_key).strip() else None
+                        except Exception:
+                            key = None
 
-                # 🔹 Save to session
-                if player == 1:
-                    session['input_p1'] = input_data
-                else:
-                    session['input_p2'] = input_data
-                session.modified = True
+                    if key is not None and arr:
+                        input_data = (arr, key)
+                        formatted_preview = f"Array: {arr}\nTarget: {key}"
+                        input_complete = True
+                    else:
+                        # Array generated, but search key will be entered later manually
+                        input_data = arr  # keep the generated array saved in session
+                        if arr:
+                            formatted_preview = f"Array: {arr}\nTarget: (Enter search key manually)"
+                        else:
+                            formatted_preview = "Array not generated yet"
+                        input_complete = False
 
-                # 🔹 Build response (formatted nicely for frontend)
+
+                # ✅ String matching - special handling
+                # ✅ String matching - special handling
+                elif category_normalized == 'string matching':
+                    text_generated = input_data if isinstance(input_data, str) else str(input_data)
+
+                    if pattern:
+                        # Combine generated text and entered pattern
+                        input_data = (text_generated, pattern)
+                        formatted_preview = f"Text: {text_generated[:200]}...\nPattern: {pattern}"
+                        input_complete = True
+                    else:
+                        # Keep the generated text visible and saved
+                        input_data = text_generated
+                        formatted_preview = f"Text: {text_generated[:200]}...\nPattern: (Enter pattern manually)"
+                        input_complete = False
+
+                # ✅ Save final input to session ONLY if complete
+                if input_data is not None and input_complete:
+                    if player == 1:
+                        session['input_p1'] = input_data
+                    else:
+                        session['input_p2'] = input_data
+                    session.modified = True
+
+                # ✅ Prepare response for frontend
                 response_data = {
                     'success': True,
-                    'input': formatted_preview,      # show formatted text
-                    'preview': formatted_preview,    # ensure same field for JS
-                    'input_complete': False          # will become True for most categories
+                    'input': input_data if input_data is not None else "incomplete",
+                    'preview': formatted_preview,
+                    'input_complete': input_complete
                 }
-
-                # ✅ Searching category: show array + target
-                if category_normalized == 'searching':
-                    # Only array generated — target entered manually later
-                    response_data['preview'] = f"Array: {input_data}\nTarget: (Enter manually)"
-                    response_data['input'] = input_data
-                    response_data['input_complete'] = False  # Wait until user enters search key
-
-                # ✅ String matching (with pattern entered)
-                elif category_normalized == 'string_matching' and isinstance(input_data, tuple) and len(input_data) == 2:
-                    text, pat = input_data
-                    response_data['preview'] = f"Text: {text[:50]}...\nPattern: {pat}"
-                    response_data['pattern'] = pat
-                    response_data['input_complete'] = True
-
-                # ✅ All other categories (graph, knapsack, etc.)
-                else:
-                    # For graph & knapsack, formatted_preview is already beautiful multiline text
-                    response_data['preview'] = formatted_preview
-                    response_data['input'] = formatted_preview
-                    response_data['input_complete'] = True
 
                 return jsonify(response_data)
 
             except Exception as e:
                 return jsonify({'success': False, 'error': str(e)})
-        
+
+                
         elif action == 'manual':
+            # ✅ Handle structured knapsack manual input first
+            if category_normalized == '0/1_knapsack':
+
+                try:
+                    num_items = int(data.get('num_items', 0))
+                    capacity = int(data.get('capacity', 0))
+                    values = [int(v.strip()) for v in data.get('values', '').splitlines() if v.strip()]
+                    weights = [int(w.strip()) for w in data.get('weights', '').splitlines() if w.strip()]
+
+                    if len(values) != num_items or len(weights) != num_items:
+                        raise ValueError("Number of values and weights must match number of items.")
+
+                    parsed_input = (num_items, weights, values, capacity)
+
+                    if player == 1:
+                        session['input_p1'] = parsed_input
+                    else:
+                        session['input_p2'] = parsed_input
+
+                    session.modified = True
+                    return jsonify({'success': True, 'input': str(parsed_input)})
+                except Exception as e:
+                    return jsonify({'success': False, 'error': str(e)})
+
             input_text = data.get('input_text', '').strip()
             search_key = data.get('search_key')
             pattern = data.get('pattern')  # For string matching with separate pattern field
@@ -379,6 +429,9 @@ def input_page():
             try:
                 # Normalize category
                 category_normalized = category_normalized.replace('_', ' ').lower()
+                if category_normalized == '0/1 knapsack':
+                    category_normalized = '0/1 knapsack'
+
 
                 # ✅ For string matching (text + pattern)
                 if category_normalized == 'string matching' and '\n' in input_text:
@@ -423,6 +476,28 @@ def input_page():
                     'success': False,
                     'error': str(e)
                 })
+           
+        # ✅ Handle pattern submission for string matching
+        elif action == 'submit_pattern':
+            player = data.get('player')
+            pattern = data.get('pattern')
+            category = data.get('category', '').lower()
+            text = session.get('input_p1') if player == 1 else session.get('input_p2')
+
+            if not text:
+                return jsonify({'success': False, 'error': 'No generated text found. Generate random text first.'})
+            if not pattern:
+                return jsonify({'success': False, 'error': 'Pattern missing.'})
+
+            # Combine text + pattern into tuple
+            combined_input = (text, pattern)
+            if player == 1:
+                session['input_p1'] = combined_input
+            else:
+                session['input_p2'] = combined_input
+            session.modified = True
+
+            return jsonify({'success': True, 'input': combined_input})
 
     
     p1_category = session.get('category_p1', 'sorting')
@@ -457,34 +532,114 @@ def battle():
         def run_algo_with_input(algo, category, input_data):
             """Run algorithm with proper input format unpacking"""
             try:
-                # Normalize category name
                 category_norm = category.replace(' ', '_').lower()
-                
-                if category_norm == 'searching' and (isinstance(input_data, tuple) or isinstance(input_data, list)):
-                    # searching: (array, target)
-                    return run_algorithm(algo, input_data[0], input_data[1])
-                
-                elif category_norm == 'string_matching' and (isinstance(input_data, tuple) or isinstance(input_data, list)):
-                    # Combine text and pattern, then handle inside run_algorithm()
-                    return run_algorithm(algo, (input_data[0], input_data[1]))
-                
-                elif category_norm in ['shortest_path', 'graph'] and (isinstance(input_data, tuple) or isinstance(input_data, list)):
-                    # shortest_path/graph: (num_nodes, edges, start_node)
-                    return run_algorithm(algo, input_data[0], input_data[1], input_data[2])
-                
-                elif category_norm == 'mst' and (isinstance(input_data, tuple) or isinstance(input_data, list)):
-                    # mst: (num_nodes, edges)
-                    return run_algorithm(algo, input_data[0], input_data[1])
-                
-                elif category_norm == '0/1 knapsack' and (isinstance(input_data, tuple) or isinstance(input_data, list)):
-                    # knapsack: (n, weights, values, capacity)
-                    return run_algorithm(algo, input_data[0], input_data[1], input_data[2], input_data[3])
-                
-                else:
-                    # sorting, subset generation: just array/list
+
+                # ✅ Sorting / Subset Generation
+                if category_norm in ['sorting', 'subset_generation']:
                     return run_algorithm(algo, input_data)
+
+                # ✅ Searching (array + target)
+                
+                elif category_norm == 'searching':
+                    # Handle different input formats
+                    print(f"DEBUG: Searching input_data type={type(input_data)}, value={input_data}")
+                    
+                    if isinstance(input_data, (tuple, list)):
+                        if len(input_data) != 2:
+                            raise Exception(f"Searching input must have exactly 2 elements (array, target), got {len(input_data)} elements: {input_data}")
+                        
+                        first, second = input_data[0], input_data[1]
+                        
+                        # Check which is the array and which is the target
+                        if isinstance(first, list) and isinstance(second, (int, float)):
+                            # Correct order: (array, target)
+                            arr, key = first, second
+                        elif isinstance(second, list) and isinstance(first, (int, float)):
+                            # Reversed order: (target, array) - swap them
+                            arr, key = second, first
+                        elif isinstance(first, list) and isinstance(second, list):
+                            raise Exception(f"Both elements are lists. Expected one list (array) and one number (target). Got: {input_data}")
+                        elif isinstance(first, (int, float)) and isinstance(second, (int, float)):
+                            raise Exception(f"Both elements are numbers. Expected one list (array) and one number (target). Got: {input_data}")
+                        else:
+                            # Debug info
+                            raise Exception(f"Searching input must contain a list and a number. Got: first={type(first).__name__} (value: {first}), second={type(second).__name__} (value: {second})")
+                    else:
+                        raise Exception(f"Invalid input format for searching algorithms. Expected tuple/list with 2 elements, got {type(input_data).__name__}: {input_data}")
+                    
+                    if not isinstance(arr, list):
+                        raise Exception(f"Array must be a list, got {type(arr).__name__}: {arr}")
+                    if not isinstance(key, (int, float)):
+                        raise Exception(f"Target must be a number, got {type(key).__name__}: {key}")
+
+                    print(f"DEBUG: Running search with arr={arr}, key={key}")
+                    return run_algorithm(algo, arr, key)
+
+                elif category_norm == 'string_matching':
+                    # Normalize to ensure correct (text, pattern) order
+                    if isinstance(input_data, (tuple, list)):
+                        # Detect and correct reversed order (pattern, text)
+                        if isinstance(input_data[0], str) and isinstance(input_data[1], str):
+                            text, pattern = input_data
+                            # Detect if pattern accidentally comes first
+                            if len(input_data[0]) < len(input_data[1]):
+                                # The first is likely the pattern (shorter)
+                                text, pattern = input_data[1], input_data[0]
+                        else:
+                            raise Exception("String matching input must contain strings (text, pattern).")
+                    else:
+                        raise Exception("Invalid input format for string matching algorithms.")
+
+                    return run_algorithm(algo, text, pattern)
+
+                # ✅ 0/1 Knapsack (remove the unused `n`)
+                elif category_norm in ['0/1_knapsack', '0/1 knapsack'] and isinstance(input_data, (tuple, list)):
+                    _, weights, values, capacity = input_data
+                    return run_algorithm(algo, weights, values, capacity)
+
+                # ✅ Graph and Shortest Path (convert edges → adjacency list)
+                elif category_norm in ['graph', 'shortest_path']:
+                    num_nodes, edges, start = input_data
+                    graph = {}
+                    for edge in edges:
+                        if len(edge) == 2:
+                            u, v = edge
+                            graph.setdefault(u, []).append(v)
+                            graph.setdefault(v, []).append(u)
+                        elif len(edge) == 3:
+                            u, v, w = edge
+                            graph.setdefault(u, []).append((v, w))
+                            graph.setdefault(v, []).append((u, w))
+
+                    # Handle Floyd-Warshall separately (no start node)
+                    if algo.__name__ == "floyd_warshall":
+                        return run_algorithm(algo, graph)
+                    else:
+                        return run_algorithm(algo, graph, start)
+
+                # ✅ MST algorithms (Prim & Kruskal)
+                elif category_norm == 'mst':
+                    num_nodes, edges = input_data
+
+                    # Build adjacency list for Prim's algorithm
+                    graph = {}
+                    for u, v, w in edges:
+                        graph.setdefault(u, []).append((v, w))
+                        graph.setdefault(v, []).append((u, w))
+
+                    if algo.__name__ == "prim":
+                        return run_algorithm(algo, graph)
+                    elif algo.__name__ == "kruskal":
+                        # Extract unique nodes for Kruskal
+                        nodes = list(set([u for u, v, _ in edges] + [v for u, v, _ in edges]))
+                        return run_algorithm(algo, edges, nodes)
+
+                else:
+                    raise Exception(f"Unsupported category: {category}")
+
             except Exception as e:
                 raise Exception(f"Error running {category} algorithm: {str(e)}")
+
         
         try:
             result1 = run_algo_with_input(p1_algo, p1_category, input_p1)
