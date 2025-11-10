@@ -229,11 +229,24 @@ def validate_result(category, input_data, raw_output):
         if category == 'searching' and isinstance(input_data, tuple):
             arr, target = input_data
             expected_idx = ref_searching.linear_search(arr, target)
-            # raw_output should be int index
-            correct = False
-            if isinstance(raw_output, int):
-                correct = (raw_output == expected_idx)
-            return {'correct': correct, 'accuracy': 1.0 if correct else 0.0, 'details': f'Expected index {expected_idx}'}
+
+            # Normalize both outputs (convert None → -1, etc.)
+            actual_idx = raw_output if isinstance(raw_output, int) else -1
+
+            correct = (actual_idx == expected_idx)
+            details = f'Expected index {expected_idx}, got {actual_idx}'
+
+            # If both say "not found", still correct
+            if expected_idx == -1 and actual_idx == -1:
+                correct = True
+                details = 'Both algorithms correctly reported key not found'
+
+            return {
+                'correct': correct,
+                'accuracy': 1.0 if correct else 0.0,
+                'details': details
+            }
+
 
         # String matching: input_data = (text, pattern)
         if category == 'string_matching' and isinstance(input_data, tuple):

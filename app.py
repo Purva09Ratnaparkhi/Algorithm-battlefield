@@ -227,7 +227,7 @@ def input_page():
             raise ValueError(f"Invalid edge format: {e}")
 
     
-    def parse_manual_input(input_text, category, pattern=None):
+    def parse_manual_input(input_text, category, pattern=None,data=None):
         """Parse manual input based on category format"""
         input_text = input_text.strip()
         
@@ -247,7 +247,7 @@ def input_page():
             text, pattern = lines[0], lines[1]
             return (text, pattern)
 
-            
+    
         elif action == 'submit_pattern':
                 # Accept pattern from frontend and combine it with text
                 pattern = data.get('pattern')
@@ -258,17 +258,29 @@ def input_page():
                 session[f'p{player}_input'] = [text, pattern]
                 return jsonify(success=True, input=[text, pattern])
         
-        elif category in ['shortest_path', 'graph']:
-            lines = [line.strip() for line in input_text.split('\n') if line.strip()]
-            if len(lines) < 3:
-                raise ValueError("Format should be: nodes\\nedges\\nstart_node (each on new line)")
+        elif category in ['shortest_path', 'shortest path', 'graph']:
+            # Safely extract from data if available (manual fields)
+            nodes_str = (data.get('nodes_manual') or '').strip() if data else ''
+            edges_str = (data.get('edges_manual') or '').strip() if data else ''
+            start_node = (data.get('start_manual') or '').strip() if data else ''
 
-            nodes = [n.strip() for n in lines[0].split(',')]
-            edges = parse_edges(lines[1])
-            start_node = lines[2].strip()
+            if not nodes_str or not edges_str or (category != 'graph' and not start_node):
+                raise ValueError("Please enter all required fields (nodes, edges, and start node for shortest path).")
 
+            # Parse nodes
+            nodes = [n.strip() for n in nodes_str.split(',') if n.strip()]
             num_nodes = len(nodes)
-            return (num_nodes, edges, start_node)
+
+            # Parse edges
+            edges = parse_edges(edges_str)
+
+            # Build input tuple
+            if category == 'graph':
+                return (num_nodes, edges)
+            else:
+                return (num_nodes, edges, start_node)
+
+
         
         elif category == 'mst':
             # Format: nodes\nedges
@@ -344,18 +356,34 @@ def input_page():
                         except Exception:
                             key = None
 
+                    # 🔹 If key is provided, combine immediately
                     if key is not None and arr:
                         input_data = (arr, key)
                         formatted_preview = f"Array: {arr}\nTarget: {key}"
                         input_complete = True
+
+                        # ✅ Store key separately in session for fallback during battle
+                        session[f'search_key_p{player}'] = key
+                        session.modified = True
+
                     else:
-                        # Array generated, but search key will be entered later manually
-                        input_data = arr  # keep the generated array saved in session
+                        # 🔹 Array generated, but key not yet entered
+                        input_data = arr  # Keep the generated array saved in session
+
+                        # ✅ Store array separately for later combination
+                        if player == 1:
+                            session['input_p1'] = arr
+                        else:
+                            session['input_p2'] = arr
+                        session.modified = True
+
+                        # ✅ Improve user feedback
                         if arr:
                             formatted_preview = f"Array: {arr}\nTarget: (Enter search key manually)"
                         else:
                             formatted_preview = "Array not generated yet"
                         input_complete = False
+
 
 
                 # ✅ String matching - special handling
@@ -378,12 +406,17 @@ def input_page():
                             input_complete = False
 
                 # ✅ Save final input to session ONLY if complete
-                if input_data is not None and input_complete:
-                    if player == 1:
-                        session['input_p1'] = input_data
-                    else:
-                        session['input_p2'] = input_data
-                    session.modified = True
+               # ✅ Save input to session
+                # ✅ Save input to session
+                # Even if incomplete (so array is preserved for later)
+                if input_data is not None:
+                    if category_normalized in ['searching', 'string matching'] or input_complete:
+                        if player == 1:
+                            session['input_p1'] = input_data
+                        else:
+                            session['input_p2'] = input_data
+                        session.modified = True
+
 
                 # ✅ Prepare response for frontend
                 response_data = {
@@ -463,7 +496,7 @@ def input_page():
 
                 # ✅ All other categories
                 else:
-                    parsed_input = parse_manual_input(input_text, category_normalized, pattern)
+                    parsed_input = parse_manual_input(input_text, category_normalized, pattern,data)
 
                 # ✅ Store in session
                 if player == 1:
@@ -483,7 +516,41 @@ def input_page():
                     'success': False,
                     'error': str(e)
                 })
-           
+        
+         # ✅ Handle search key submission for Searching category
+        elif action == 'submit_search_key':
+            player = data.get('player')
+            search_key = data.get('search_key')
+            category = data.get('category', '').lower()
+
+            # Decide which session key to use
+            session_key = 'input_p1' if player == 1 else 'input_p2'
+            stored_data = session.get(session_key)
+
+            # Make sure an array already exists
+            if not stored_data or not isinstance(stored_data, list):
+                return jsonify({'success': False, 'error': 'No array found. Generate array first.'})
+
+            # Make sure the user entered a valid key
+            if search_key is None:
+                return jsonify({'success': False, 'error': 'Search key missing.'})
+
+            # Combine array + key into a tuple
+            combined_input = (stored_data, int(search_key))
+
+            # Save combined input and key in session
+            if player == 1:
+                session['input_p1'] = combined_input
+                session['search_key_p1'] = int(search_key)
+            else:
+                session['input_p2'] = combined_input
+                session['search_key_p2'] = int(search_key)
+
+            session.modified = True
+
+            return jsonify({'success': True, 'input': combined_input})
+        
+         
         # ✅ Handle pattern submission for string matching
         elif action == 'submit_pattern':
             player = data.get('player')
@@ -548,7 +615,7 @@ def battle():
         if not p1_algo or not p2_algo or input_p1 is None or input_p2 is None:
             return jsonify({'success': False, 'error': 'Missing algorithm or input data'})
         
-        def run_algo_with_input(algo, category, input_data):
+        def run_algo_with_input(algo, category, input_data,player):
             """Run algorithm with proper input format unpacking"""
             try:
                 category_norm = category.replace(' ', '_').lower()
@@ -560,38 +627,26 @@ def battle():
                 # ✅ Searching (array + target)
                 
                 elif category_norm == 'searching':
-                    # Handle different input formats
-                    print(f"DEBUG: Searching input_data type={type(input_data)}, value={input_data}")
-                    
+                    # Handle both cases: (array, key) or just array
                     if isinstance(input_data, (tuple, list)):
-                        if len(input_data) != 2:
-                            raise Exception(f"Searching input must have exactly 2 elements (array, target), got {len(input_data)} elements: {input_data}")
-                        
-                        first, second = input_data[0], input_data[1]
-                        
-                        # Check which is the array and which is the target
-                        if isinstance(first, list) and isinstance(second, (int, float)):
-                            # Correct order: (array, target)
-                            arr, key = first, second
-                        elif isinstance(second, list) and isinstance(first, (int, float)):
-                            # Reversed order: (target, array) - swap them
-                            arr, key = second, first
-                        elif isinstance(first, list) and isinstance(second, list):
-                            raise Exception(f"Both elements are lists. Expected one list (array) and one number (target). Got: {input_data}")
-                        elif isinstance(first, (int, float)) and isinstance(second, (int, float)):
-                            raise Exception(f"Both elements are numbers. Expected one list (array) and one number (target). Got: {input_data}")
+                        # Case 1: input_data already combined
+                        if len(input_data) == 2 and isinstance(input_data[0], list):
+                            arr, key = input_data
+                        # Case 2: only array stored (key missing)
+                        elif all(isinstance(x, (int, float)) for x in input_data):
+                            # Try to fetch key from frontend or session
+                            key = session.get(f'search_key_p{player}', None)
+                            if key is None:
+                                raise Exception("Search key missing. Enter key before running.")
+                            arr = input_data
                         else:
-                            # Debug info
-                            raise Exception(f"Searching input must contain a list and a number. Got: first={type(first).__name__} (value: {first}), second={type(second).__name__} (value: {second})")
+                            raise Exception(f"Searching input must have exactly 2 elements (array, target), got {len(input_data)} elements: {input_data}")
                     else:
-                        raise Exception(f"Invalid input format for searching algorithms. Expected tuple/list with 2 elements, got {type(input_data).__name__}: {input_data}")
-                    
-                    if not isinstance(arr, list):
-                        raise Exception(f"Array must be a list, got {type(arr).__name__}: {arr}")
-                    if not isinstance(key, (int, float)):
-                        raise Exception(f"Target must be a number, got {type(key).__name__}: {key}")
+                        raise Exception("Invalid input format for searching algorithms.")
 
-                    print(f"DEBUG: Running search with arr={arr}, key={key}")
+                    if not isinstance(arr, list) or not isinstance(key, (int, float)):
+                        raise Exception(f"Searching input must be (list, int), got ({type(arr)}, {type(key)})")
+
                     return run_algorithm(algo, arr, key)
 
                 elif category_norm == 'string_matching':
@@ -664,8 +719,8 @@ def battle():
 
         
         try:
-            result1 = run_algo_with_input(p1_algo, p1_category, input_p1)
-            result2 = run_algo_with_input(p2_algo, p2_category, input_p2)
+            result1 = run_algo_with_input(p1_algo, p1_category, input_p1,1)
+            result2 = run_algo_with_input(p2_algo, p2_category, input_p2,2)
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)})
         

@@ -31,11 +31,12 @@ def validate_input(input_data, algorithm_type):
         return True, ""
     
     elif algorithm_type in ['shortest_path', 'mst', 'graph']:
-        if not isinstance(input_data, (dict, list)):
-            return False, "Input must be a graph (dict or list)"
+        if not isinstance(input_data, (tuple, dict, list)):
+            return False, "Input must be (num_nodes, edges, start_node) or similar tuple"
         return True, ""
+
     
-    elif algorithm_type == 'knapsack':
+    elif algorithm_type in ['knapsack', '0/1 knapsack']:
         if not isinstance(input_data, tuple) or len(input_data) != 3:
             return False, "Knapsack input must be (weights, values, capacity)"
         weights, values, capacity = input_data

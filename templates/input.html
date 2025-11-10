@@ -137,6 +137,15 @@ endblock %} {% block content %}
           </button>
           <button
             class="btn btn-primary w-100 btn-lg mt-2"
+            id="p1-searchkey-submit-btn"
+            style="display: none"
+            onclick="submitSearchKey(1)"
+          >
+            Submit Search Key
+          </button>
+
+          <button
+            class="btn btn-primary w-100 btn-lg mt-2"
             id="p1-pattern-submit-btn"
             style="display: none"
             onclick="submitPatternForStringMatching(1)"
@@ -414,7 +423,7 @@ endblock %} {% block content %}
               type="number"
               id="p2-string-length-random"
               class="form-control"
-              placeholder="e.g. 50"
+              placeholder="e.g. 10"
               min="5"
             />
           </div>
@@ -477,6 +486,15 @@ endblock %} {% block content %}
           </button>
           <button
             class="btn btn-primary w-100 btn-lg mt-2"
+            id="p2-searchkey-submit-btn"
+            style="display: none"
+            onclick="submitSearchKey(2)"
+          >
+            Submit Search Key
+          </button>
+
+          <button
+            class="btn btn-primary w-100 btn-lg mt-2"
             id="p2-pattern-submit-btn"
             style="display: none"
             onclick="submitPatternForStringMatching(2)"
@@ -513,7 +531,7 @@ endblock %} {% block content %}
               type="number"
               id="p2-string-length-manual"
               class="form-control"
-              placeholder="e.g. 50"
+              placeholder="e.g. 10"
               min="5"
             />
           </div>
@@ -745,6 +763,7 @@ endblock %} {% block content %}
       "knapsack-capacity-random-div",
       "knapsack-max-weight-random-div",
       "knapsack-max-value-random-div",
+      "search-key-submit-btn"
     ];
 
     // Hide all
@@ -753,25 +772,43 @@ endblock %} {% block content %}
       if (el) el.style.display = "none";
     });
 
-    if (["sorting", "searching", "subset generation"].includes(category)) {
-      if (activeTab === "random") {
-        document.getElementById(
-          `p${player}-elements-random-div`
-        ).style.display = "block";
-        if (category === "searching")
-          document.getElementById(
-            `p${player}-search-key-random-div`
-          ).style.display = "block";
-      } else {
-        document.getElementById(
-          `p${player}-elements-manual-div`
-        ).style.display = "block";
-        document.getElementById(`p${player}-main-input-div`).style.display =
-          "block";
-        if (category === "searching")
-          document.getElementById(`p${player}-search-key-div`).style.display =
-            "block";
-      }
+      if (["sorting", "searching", "subset generation"].includes(category)) {
+  if (activeTab === "random") {
+    document.getElementById(
+      `p${player}-elements-random-div`
+    ).style.display = "block";
+
+    if (category === "searching") {
+      document.getElementById(
+        `p${player}-search-key-random-div`
+      ).style.display = "block";
+
+      // ✅ Show Submit Search Key button only for Searching
+      const submitBtn = document.getElementById(
+        `p${player}-searchkey-submit-btn`
+      );
+      if (submitBtn) submitBtn.style.display = "block";
+    }
+  } else {
+    document.getElementById(
+      `p${player}-elements-manual-div`
+    ).style.display = "block";
+    document.getElementById(`p${player}-main-input-div`).style.display =
+      "block";
+
+    if (category === "searching") {
+      document.getElementById(`p${player}-search-key-div`).style.display =
+        "block";
+
+      // ✅ Hide Submit button in manual mode
+      const submitBtn = document.getElementById(
+        `p${player}-searchkey-submit-btn`
+      );
+      if (submitBtn) submitBtn.style.display = "none";
+    }
+  }
+
+
     } else if (category === "string matching") {
       if (activeTab === "random") {
         document.getElementById(
@@ -975,6 +1012,20 @@ endblock %} {% block content %}
       payload.capacity = parseInt(cap);
       payload.input_text = `${values}\n${weights}`;
     }
+    else if (["graph", "shortest path"].includes(category)) {
+  const nodes = document.getElementById(`p${player}-nodes-manual`).value.trim();
+  const edges = document.getElementById(`p${player}-edges-manual`).value.trim();
+  const start = document.getElementById(`p${player}-start-manual`).value.trim();
+
+  if (!nodes || !edges || (category === "shortest path" && !start)) {
+    return alert("Please enter all required fields for Graph/Shortest Path.");
+  }
+
+  payload.nodes_manual = nodes;
+  payload.edges_manual = edges;
+  payload.start_manual = start;
+}
+
 
     $.ajax({
       url: "/input",
@@ -1044,6 +1095,45 @@ endblock %} {% block content %}
       btn.disabled = true;
     }
   }
+
+  function submitSearchKey(player) {
+  const keyField = document.getElementById(`p${player}-search-key-random`);
+  const key = keyField && keyField.value.trim() ? parseInt(keyField.value.trim()) : null;
+  if (key === null || isNaN(key)) return alert("Please enter a valid search key.");
+
+  const category = player === 1 ? p1Category : p2Category;
+
+  // Send the search key to backend to combine with existing array
+  $.ajax({
+    url: "/input",
+    type: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({
+      player: player,
+      action: "submit_search_key",
+      category: category,
+      search_key: key,
+    }),
+    success: function (response) {
+      if (response.success) {
+        document.getElementById(`p${player}-random-preview`).innerHTML = `
+          <div class="alert alert-success">
+            <strong>✓ Array & Key Ready!</strong><br>
+            <pre>${JSON.stringify(response.input[0])}\nTarget: ${response.input[1]}</pre>
+          </div>`;
+        if (player === 1) p1Input = response.input;
+        else p2Input = response.input;
+        checkBothInputs();
+      } else {
+        alert("Error: " + response.error);
+      }
+    },
+    error: function () {
+      alert("Error submitting search key.");
+    },
+  });
+}
+
 
   // ✅ Initialize once page and all tabs are fully loaded
   document.addEventListener("DOMContentLoaded", () => {
@@ -1125,6 +1215,11 @@ endblock %} {% block content %}
       opacity: 1;
     }
   }
+  /* Make all helper texts white */
+small.text-muted {
+  color: #ffffff !important;
+  opacity: 0.9; /* optional softer white */
+}
 
   .form-control {
     background: rgba(255, 255, 255, 0.05);
