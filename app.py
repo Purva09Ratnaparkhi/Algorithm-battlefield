@@ -35,6 +35,14 @@ def add_cache_control(response):
     response.headers['Expires'] = '0'
     return response
 
+from flask_session import Session
+
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = './flask_session/'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+Session(app)
+
 # Algorithm registry
 algorithms = {
     "string matching": [
