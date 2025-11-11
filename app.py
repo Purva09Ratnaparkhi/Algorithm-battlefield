@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, session, redirect, url_for, j
 import threading
 import json
 import os
+from utils.LLM_explainer import generate_explanation
 from datetime import datetime
 
 # Import algorithms
@@ -783,23 +784,46 @@ def result():
     result1 = session.get('result1')
     result2 = session.get('result2')
     comparison = session.get('comparison')
-    
+
     if not result1 or not result2 or not comparison:
         return redirect(url_for('select_category'))
-    
+
     p1_algo_name = session.get('algorithm_p1', 'Algorithm 1')
     p2_algo_name = session.get('algorithm_p2', 'Algorithm 2')
     p1_category = session.get('category_p1', 'Unknown')
     p2_category = session.get('category_p2', 'Unknown')
-    
-    return render_template('result.html',
-                          result1=result1,
-                          result2=result2,
-                          comparison=comparison,
-                          p1_algo_name=p1_algo_name,
-                          p2_algo_name=p2_algo_name,
-                          p1_category=p1_category,
-                          p2_category=p2_category)
+    input_p1 = session.get('input_p1')
+    input_p2 = session.get('input_p2')
+
+    llm_input = {
+        "category": p1_category,
+        "p1_algo": p1_algo_name,
+        "p2_algo": p2_algo_name,
+        "p1_input": input_p1,
+        "p2_input": input_p2,
+        "p1_time": result1["time"],
+        "p2_time": result2["time"],
+        "p1_memory": result1["memory"],
+        "p2_memory": result2["memory"],
+        "p1_score": comparison["score_1"],
+        "p2_score": comparison["score_2"],
+        "winner": comparison["winner"]
+    }
+
+    # Generate LLM explanation
+    explanation_text = generate_explanation(llm_input)
+
+    return render_template(
+        'result.html',
+        result1=result1,
+        result2=result2,
+        comparison=comparison,
+        p1_algo_name=p1_algo_name,
+        p2_algo_name=p2_algo_name,
+        p1_category=p1_category,
+        p2_category=p2_category,
+        explanation=explanation_text 
+    )
 
 
 @app.route('/play_again')
