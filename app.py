@@ -681,7 +681,7 @@ def battle():
                     if not isinstance(pattern, str):
                         raise Exception(f"Pattern must be a string, got {type(pattern)}")
                     
-                    # No need to swap text and pattern anymore - trust the order
+                    
                     return run_algorithm(algo, text, pattern)
 
                 # ✅ 0/1 Knapsack (remove the unused `n`)
