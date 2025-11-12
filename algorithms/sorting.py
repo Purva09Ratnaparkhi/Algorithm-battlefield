@@ -59,7 +59,7 @@ def quick_sort(arr):
     """Quick Sort with random pivot and tail recursion optimization."""
     
     def partition(low, high):
-        pivot_index = random.randint(low, high)
+        pivot_index = arr[len(arr)//2]
         arr[pivot_index], arr[high] = arr[high], arr[pivot_index]
         pivot = arr[high]
         i = low - 1
