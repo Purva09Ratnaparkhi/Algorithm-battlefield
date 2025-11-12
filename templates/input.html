@@ -1026,6 +1026,19 @@ endblock %} {% block content %}
   payload.start_manual = start;
 }
 
+else if (category === "mst") {
+  const nodes = document.getElementById(`p${player}-mst-nodes-manual`).value.trim();
+  const edges = document.getElementById(`p${player}-mst-edges-manual`).value.trim();
+
+  if (!nodes || !edges) {
+    return alert("Please enter both nodes and weighted edges for MST.");
+  }
+
+  payload.nodes_manual = nodes;
+  payload.edges_manual = edges;
+}
+
+
 
     $.ajax({
       url: "/input",

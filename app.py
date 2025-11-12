@@ -292,15 +292,22 @@ def input_page():
 
         
         elif category == 'mst':
-            # Format: nodes\nedges
-            lines = [line.strip() for line in input_text.split('\n') if line.strip()]
-            if len(lines) < 2:
-                raise ValueError("Format should be: nodes\\nedges (each on new line)")
-            
-            num_nodes = int(lines[0])
-            edges = parse_edges(lines[1])
-            
+            # Handle separate fields for MST (Nodes + Edges)
+            nodes_str = (data.get('nodes_manual') or '').strip() if data else ''
+            edges_str = (data.get('edges_manual') or '').strip() if data else ''
+
+            if not nodes_str or not edges_str:
+                raise ValueError("Please enter both nodes and weighted edges for MST.")
+
+            # Parse nodes and count them
+            nodes = [n.strip() for n in nodes_str.split(',') if n.strip()]
+            num_nodes = len(nodes)
+
+            # Parse edges using your existing helper
+            edges = parse_edges(edges_str)
+
             return (num_nodes, edges)
+
         
         elif category == '0/1 knapsack':
             # Format: n\nweights\nvalues\ncapacity
