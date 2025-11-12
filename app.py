@@ -487,14 +487,13 @@ def input_page():
 
                 # ✅ For string matching (text + pattern)
                 if category_normalized == 'string matching':
-                    text = data.get('text', '').strip()
-                    pattern = data.get('pattern', '').strip()
-                    
-                    if not text or not pattern:
+                    input_text = data.get('input_text', '').strip()
+                    lines = [line.strip() for line in input_text.split('\n') if line.strip()]
+                    if len(lines) < 2:
                         raise ValueError("Both text and pattern are required for string matching")
-                    
-                    # Always store as a list to maintain consistency in session
+                    text, pattern = lines[0], lines[1]
                     parsed_input = [text, pattern]
+
 
                 # ✅ For searching, use num_elements and search_key if provided
                 elif category_normalized == 'searching':
