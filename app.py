@@ -285,7 +285,7 @@ def input_page():
 
             # Build input tuple
             if category == 'graph':
-                return (num_nodes, edges)
+                return (num_nodes, edges,start_node)
             else:
                 return (num_nodes, edges, start_node)
 
