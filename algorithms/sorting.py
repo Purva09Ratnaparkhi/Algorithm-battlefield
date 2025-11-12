@@ -53,18 +53,35 @@ def merge(left, right):
     result.extend(right[j:])
     return result
 
+import random
 
 def quick_sort(arr):
-    """Quick Sort - Partition-based sorting"""
-    if len(arr) <= 1:
-        return arr
+    """Quick Sort with random pivot and tail recursion optimization."""
     
-    pivot = arr[len(arr) // 2]
-    left = [x for x in arr if x < pivot]
-    middle = [x for x in arr if x == pivot]
-    right = [x for x in arr if x > pivot]
-    
-    return quick_sort(left) + middle + quick_sort(right)
+    def partition(low, high):
+        pivot_index = random.randint(low, high)
+        arr[pivot_index], arr[high] = arr[high], arr[pivot_index]
+        pivot = arr[high]
+        i = low - 1
+        for j in range(low, high):
+            if arr[j] <= pivot:
+                i += 1
+                arr[i], arr[j] = arr[j], arr[i]
+        arr[i + 1], arr[high] = arr[high], arr[i + 1]
+        return i + 1
+
+    def quick_sort_recursive(low, high):
+        while low < high:
+            p = partition(low, high)
+            if p - low < high - p:
+                quick_sort_recursive(low, p - 1)
+                low = p + 1
+            else:
+                quick_sort_recursive(p + 1, high)
+                high = p - 1
+
+    quick_sort_recursive(0, len(arr) - 1)
+    return arr
 
 
 def selection_sort(arr):
