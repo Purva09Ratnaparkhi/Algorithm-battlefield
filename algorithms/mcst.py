@@ -39,35 +39,38 @@ def prim(graph, start_node=None):
 
 
 def kruskal(edges, nodes):
-    """Kruskal's Algorithm - MST using Union-Find"""
-    
-    class UnionFind:
-        def __init__(self, n):
-            self.parent = list(range(n))
-            self.rank = [0] * n
-        
-        def find(self, x):
-            if self.parent[x] != x:
-                self.parent[x] = self.find(self.parent[x])
-            return self.parent[x]
-        
-        def union(self, x, y):
-            px, py = self.find(x), self.find(y)
-            if px == py:
-                return False
-            if self.rank[px] < self.rank[py]:
-                px, py = py, px
-            self.parent[py] = px
-            if self.rank[px] == self.rank[py]:
-                self.rank[px] += 1
-            return True
-    
-    edges_sorted = sorted(edges, key=lambda x: x[2])
-    uf = UnionFind(len(nodes))
+    parent = {}
+    rank = {}
+
+    def find(u):
+        if parent[u] != u:
+            parent[u] = find(parent[u])
+        return parent[u]
+
+    def union(u, v):
+        root_u = find(u)
+        root_v = find(v)
+        if root_u != root_v:
+            if rank[root_u] < rank[root_v]:
+                parent[root_u] = root_v
+            elif rank[root_u] > rank[root_v]:
+                parent[root_v] = root_u
+            else:
+                parent[root_v] = root_u
+                rank[root_u] += 1
+
+    # Initialize disjoint sets
+    for node in nodes:
+        parent[node] = node
+        rank[node] = 0
+
+    # Sort edges by weight
+    edges.sort(key=lambda x: x[2])
+
     mst = []
-    
-    for u, v, weight in edges_sorted:
-        if uf.union(u, v):
-            mst.append((u, v, weight))
-    
+    for u, v, w in edges:
+        if find(u) != find(v):
+            union(u, v)
+            mst.append((u, v, w))
+
     return mst
