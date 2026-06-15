@@ -1,3 +1,12 @@
+---
+title: Algorithm Battlefield
+emoji: ⚔️
+colorFrom: blue
+colorTo: red
+sdk: docker
+app_port: 7860
+---
+
 # Battlefield — Algorithm Battle Playground
 
 This project is an educational web app that lets two players pit algorithm implementations against each other. Players choose an algorithm (sorting, searching, string matching, graph algorithms, knapsack, subset generation, MST, etc.), optionally provide custom input, and then the server runs both algorithms, measures time/memory, counts algorithm-specific comparisons, validates correctness, scores the results and declares a winner.
